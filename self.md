@@ -32,7 +32,8 @@ sequenceDiagram
     VC ->> M: Return proof
     M ->> A: verifySelfProof(proof)
     A ->> HUB: verifyVcAndDisclose(proof)
-    HUB ->> HUB: verify passport registration, verify disclose proof
+    HUB ->> IR: verify passport registration
+    HUB ->> HUB: verify disclose proof
     HUB ->> A: proof valid
     A ->> A: emit UserIdentifierRegistered
    
