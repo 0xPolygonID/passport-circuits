@@ -4,7 +4,7 @@ include "../utils/passport/customHashers.circom";
 include "../utils/passport/signatureAlgorithm.circom";
 include "../utils/passport/date/isValid.circom";
 include "circomlib/circuits/poseidon.circom";
-include "../utils/passport/passportVerifier.circom";
+include "../utils/passport/passportVerifierSignature.circom";
 include "../utils/passport/constants.circom";
 include "../utils/crypto/bitify/splitWordsToBytes.circom";
 include "../utils/crypto/bitify/bytes.circom";
@@ -14,7 +14,7 @@ include "../utils/passport/checkPubkeyPosition.circom";
 
 /// @title SIGNATURE
 /// @notice Main circuit — verifies the integrity of the passport data, the signature, and generates commitment and nullifier
-/// @param DG_HASH_ALGO Hash algorithm used for DG hashing
+/// @param DG_HASH_ALGO Hash algorithm used for DG hashing - [dg1_removed] from the original template
 /// @param ECONTENT_HASH_ALGO Hash algorithm used for eContent
 /// @param signatureAlgorithm Algorithm used for passport signature verification - contains the information about the final hash algorithm
 /// @param n Number of bits per chunk the key is split into.
@@ -43,7 +43,7 @@ include "../utils/passport/checkPubkeyPosition.circom";
 /// @output nullifier Generated nullifier - deterministic on the passport data
 /// @output commitment Commitment that will be added to the onchain registration tree
 template SIGNATURE(
-    DG_HASH_ALGO,
+    // DG_HASH_ALGO, - [dg1_removed]
     ECONTENT_HASH_ALGO,
     signatureAlgorithm,
     n,
@@ -73,8 +73,9 @@ template SIGNATURE(
     signal input dsc_pubKey_offset;
     signal input dsc_pubKey_actual_size;
 
-    signal input dg1[93];
-    signal input dg1_hash_offset;
+    // signal input dg1[93];  [dg1_removed]
+    // signal input dg1_hash_offset; // [dg1_removed]
+    signal input dg1_packed_hash; // [dg1_removed] - adding the packed hash instead of dg1 and dg1_hash_offset
     signal input eContent[MAX_ECONTENT_PADDED_LEN];
     signal input eContent_padded_length;
     signal input signed_attr[MAX_SIGNED_ATTR_PADDED_LEN];
@@ -145,9 +146,9 @@ template SIGNATURE(
         dsc_pubKey_actual_size
     );
 
-    // verify passport signature
-    component passportVerifier = PassportVerifier(
-        DG_HASH_ALGO,
+    // verify passport signature (without DG1 hash check)
+    component passportVerifier = PassportVerifierSignature(
+        // DG_HASH_ALGO, - [dg1_removed]
         ECONTENT_HASH_ALGO,
         signatureAlgorithm,
         n,
@@ -156,8 +157,8 @@ template SIGNATURE(
         MAX_SIGNED_ATTR_PADDED_LEN
     );
 
-    passportVerifier.dg1 <== dg1;
-    passportVerifier.dg1_hash_offset <== dg1_hash_offset;
+    // passportVerifier.dg1 <== dg1; - [dg1_removed]
+    // passportVerifier.dg1_hash_offset <== dg1_hash_offset; - [dg1_removed]
     passportVerifier.eContent <== eContent;
     passportVerifier.eContent_padded_length <== eContent_padded_length;
     passportVerifier.signed_attr <== signed_attr;
@@ -169,7 +170,7 @@ template SIGNATURE(
     signal output nullifier <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
 
     // generate commitment
-    signal dg1_packed_hash <== PackBytesAndPoseidon(93)(dg1);
+    // signal dg1_packed_hash <== PackBytesAndPoseidon(93)(dg1); [dg1_removed]
     signal eContent_shaBytes_packed_hash <== PackBytesAndPoseidon(ECONTENT_HASH_ALGO_BYTES)(passportVerifier.eContentShaBytes);
     
     signal output commitment <== Poseidon(5)([
