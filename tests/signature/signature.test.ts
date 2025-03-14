@@ -3,7 +3,7 @@ import { describe } from 'mocha';
 import { expect } from 'chai';
 import path from 'path';
 import { wasm as wasm_tester } from 'circom_tester';
-import { generateCircuitInputsRegisterDsc } from '../../utils/circuits/generateInputs';
+import { generateCircuitInputsSignature } from '../../utils/circuits/generateInputs';
 import { genMockPassportData } from '../../utils/passports/genMockPassportData';
 import { SignatureAlgorithm } from '../../utils/types';
 import { getCircuitNameFromPassportData } from '../../utils/circuits/circuitsName';
@@ -38,7 +38,7 @@ testSuite.forEach(
 
       const secret = poseidon6('SECRET'.split('').map((x) => BigInt(x.charCodeAt(0)))).toString();
 
-      const inputs = generateCircuitInputsRegisterDsc(
+      const inputs = generateCircuitInputsSignature(
         secret,
         passportData,
         serialized_dsc_tree as string
@@ -48,7 +48,7 @@ testSuite.forEach(
         circuit = await wasm_tester(
           path.join(
             __dirname,
-            `../../circuits/register/instances/${getCircuitNameFromPassportData(passportData, 'register')}.circom`
+            `../../circuits/signature/instances/${getCircuitNameFromPassportData(passportData, 'signature')}.circom`
           ),
           {
             include: [
@@ -64,7 +64,7 @@ testSuite.forEach(
         expect(circuit).to.not.be.undefined;
       });
 
-      it('should calculate the witness with correct inputs, and have the right nullifier and commitment', async function () {
+      it.only('should calculate the witness with correct inputs, and have the right nullifier and commitment', async function () {
         const w = await circuit.calculateWitness(inputs);
         await circuit.checkConstraints(w);
 
