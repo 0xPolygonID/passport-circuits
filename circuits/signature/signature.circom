@@ -14,6 +14,7 @@ include "../utils/passport/checkPubkeyPosition.circom";
 
 /// @title SIGNATURE
 /// @notice Main circuit — verifies the integrity of the passport data, the signature, and generates commitment and nullifier
+/// @param DG_HASH_ALGO Hash algorithm used for DG hashing
 /// @param ECONTENT_HASH_ALGO Hash algorithm used for eContent
 /// @param signatureAlgorithm Algorithm used for passport signature verification - contains the information about the final hash algorithm
 /// @param n Number of bits per chunk the key is split into.
@@ -42,6 +43,7 @@ include "../utils/passport/checkPubkeyPosition.circom";
 /// @output nullifier Generated nullifier - deterministic on the passport data
 /// @output commitment Commitment that will be added to the onchain registration tree
 template SIGNATURE(
+    DG_HASH_ALGO,
     ECONTENT_HASH_ALGO,
     signatureAlgorithm,
     n,
@@ -144,43 +146,31 @@ template SIGNATURE(
     );
 
     // verify passport signature
-    var SIGNED_ATTR_HASH_ALGO = getHashLength(signatureAlgorithm);
-    var SIGNED_ATTR_HASH_ALGO_BYTES = SIGNED_ATTR_HASH_ALGO / 8;
+    component passportVerifier = PassportVerifier(
+        DG_HASH_ALGO,
+        ECONTENT_HASH_ALGO,
+        signatureAlgorithm,
+        n,
+        k,
+        MAX_ECONTENT_PADDED_LEN,
+        MAX_SIGNED_ATTR_PADDED_LEN
+    );
 
-    signal signedAttrShaBits[SIGNED_ATTR_HASH_ALGO] <== ShaBytesDynamic(SIGNED_ATTR_HASH_ALGO, MAX_SIGNED_ATTR_PADDED_LEN)(signed_attr, signed_attr_padded_length);
-    signal signedAttrShaBytes[SIGNED_ATTR_HASH_ALGO_BYTES] <== BitsToBytesArray(SIGNED_ATTR_HASH_ALGO)(signedAttrShaBits);
+    passportVerifier.dg1 <== dg1;
+    passportVerifier.dg1_hash_offset <== dg1_hash_offset;
+    passportVerifier.eContent <== eContent;
+    passportVerifier.eContent_padded_length <== eContent_padded_length;
+    passportVerifier.signed_attr <== signed_attr;
+    passportVerifier.signed_attr_padded_length <== signed_attr_padded_length;
+    passportVerifier.signed_attr_econtent_hash_offset <== signed_attr_econtent_hash_offset;
+    passportVerifier.pubKey_dsc <== pubKey_dsc;
+    passportVerifier.signature_passport <== signature_passport;
 
-    // verify passport signature
-    SignatureVerifier(signatureAlgorithm, n, k)(signedAttrShaBits, pubKey_dsc, signature_passport);
-    
-    // component passportVerifier = PassportVerifier(
-    //     ECONTENT_HASH_ALGO,
-    //     signatureAlgorithm,
-    //     n,
-    //     k,
-    //     MAX_ECONTENT_PADDED_LEN,
-    //     MAX_SIGNED_ATTR_PADDED_LEN
-    // );
-
-    // passportVerifier.dg1 <== dg1;
-    // passportVerifier.dg1_hash_offset <== dg1_hash_offset;
-    // passportVerifier.eContent <== eContent;
-    // passportVerifier.eContent_padded_length <== eContent_padded_length;
-    // passportVerifier.signed_attr <== signed_attr;
-    // passportVerifier.signed_attr_padded_length <== signed_attr_padded_length;
-    // passportVerifier.signed_attr_econtent_hash_offset <== signed_attr_econtent_hash_offset;
-    // passportVerifier.pubKey_dsc <== pubKey_dsc;
-    // passportVerifier.signature_passport <== signature_passport;
-
-     // compute hash of eContent (for hash of commitment)
-    signal eContentShaBits[ECONTENT_HASH_ALGO] <== ShaBytesDynamic(ECONTENT_HASH_ALGO, MAX_ECONTENT_PADDED_LEN)(eContent, eContent_padded_length);
-    signal eContentShaBytes[ECONTENT_HASH_ALGO_BYTES] <== BitsToBytesArray(ECONTENT_HASH_ALGO)(eContentShaBits);
-
-    signal output nullifier <== PackBytesAndPoseidon(HASH_LEN_BYTES)(signedAttrShaBytes);
+    signal output nullifier <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
 
     // generate commitment
     signal dg1_packed_hash <== PackBytesAndPoseidon(93)(dg1);
-    signal eContent_shaBytes_packed_hash <== PackBytesAndPoseidon(ECONTENT_HASH_ALGO_BYTES)(eContentShaBytes);
+    signal eContent_shaBytes_packed_hash <== PackBytesAndPoseidon(ECONTENT_HASH_ALGO_BYTES)(passportVerifier.eContentShaBytes);
     
     signal output commitment <== Poseidon(5)([
         secret,
