@@ -2,7 +2,6 @@
 sequenceDiagram
     participant P as Passport
     participant M as Mobile
-    participant TEE as TEE
     participant DCS as DCS.circuit
     participant R as Register.circuit
     participant VC as VC_and_disclose.circuit
@@ -10,23 +9,23 @@ sequenceDiagram
     participant IR as IdentityRegistry SC
     participant A as Airdrop SC
     M ->> P: Scan passport data NFC
-    M ->> TEE: Send passport data (DG1, SOD, ..)
-    TEE ->> IR: isRegisteredDscKeyCommitment()
+    M ->> M: Parse passport data (DG1, SOD, ..)
+    M ->> IR: isRegisteredDscKeyCommitment()
     opt If isRegisteredDscKeyCommitment returns false
-        TEE ->> DCS: Generate DCS proof
+        M ->> DCS: Generate DCS proof
         DCS ->> DCS: Generate proof
-        DCS ->> TEE: return proof
-        TEE ->> HUB:registerDscKeyCommitment(proof)
+        DCS ->> M: return proof
+        M ->> HUB:registerDscKeyCommitment(proof)
         HUB ->> HUB: verify proof
         HUB ->> IR: registerDscKeyCommitment(DSC_TREE_LEAF)
     end
-    TEE ->> R: Generate Register proof
+    M ->> R: Generate Register proof
     R ->> R: Generate proof
-    R ->> TEE: Return proof
-    TEE ->> HUB: registerPassportCommitment(proof)
+    R ->> M: Return proof
+    M ->> HUB: registerPassportCommitment(proof)
     HUB ->> HUB: Verify proof, checkDscKeyCommitmentMerkleRoot
     HUB ->> IR: registerCommitment(nullifier, registerCommitment)
-    TEE ->> M: Passport registration succeed
+    M ->> M: Passport registration succeed
     M ->> VC: Generate disclose proof
     VC ->> VC: Generate proof
     VC ->> M: Return proof
