@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "go",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceFolder}/signature-verifier-api/main.go",
+        "envFile": "${workspaceFolder}/signature-verifier-api/.env",
+        "cwd": "${workspaceFolder}"
+      },
+    ]
+}
