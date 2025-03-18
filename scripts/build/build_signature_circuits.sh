@@ -9,9 +9,9 @@ OUTPUT_DIR="build/${CIRCUIT_TYPE}"
 # Define circuits and their configurations
 # format: name:poweroftau:build_flag
 CIRCUITS=(
-    "signature_sha1_sha1_sha1_ecdsa_brainpoolP224r1:21:false"
-    "signature_sha1_sha1_sha1_ecdsa_secp256r1:21:false"
-    "signature_sha1_sha1_sha1_rsa_65537_2048:20:false"
+    "signature_sha1_sha1_sha1_ecdsa_brainpoolP224r1:22:true"
+    # "signature_sha1_sha1_sha1_ecdsa_secp256r1:21:false" # Instance not found
+    # "signature_sha1_sha1_sha1_rsa_65537_2048:20:false" # Instance not found
     "signature_sha1_sha256_sha256_rsa_65537_4096:20:false"
     "signature_sha224_sha224_sha224_ecdsa_brainpoolP224r1:22:false"
     "signature_sha256_sha256_sha256_ecdsa_brainpoolP256r1:21:false"

@@ -1,5 +1,9 @@
 # ZK Passport
 
+1. Install dependencies
+```
+git submodule update --init --recursive
+```
 ```
 npm install
 ```
@@ -12,3 +16,4 @@ npm run test-dsc
 ```
 npm run test-register
 ```
+
