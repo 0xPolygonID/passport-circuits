@@ -8,9 +8,10 @@
         "args": ["${workspaceFolder}/api-nest/src/main.ts"],
         "runtimeArgs": ["--nolazy", "-r", "ts-node/register", "-r", "tsconfig-paths/register"],
         "sourceMaps": true,
-        "cwd": "${workspaceFolder}/api-nest",
+        "cwd": "${workspaceFolder}/api-nest/src",
         "console": "integratedTerminal",
-        "skipFiles": ["<node_internals>/**"]
+        "skipFiles": ["<node_internals>/**"],
+        "outputCapture": "std",
       }
     ]
 }
