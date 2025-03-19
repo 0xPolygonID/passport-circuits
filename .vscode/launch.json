@@ -2,13 +2,15 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "go",
-        "type": "go",
+        "name": "Debug NestJS",
+        "type": "node",
         "request": "launch",
-        "mode": "auto",
-        "program": "${workspaceFolder}/signature-verifier-api/main.go",
-        "envFile": "${workspaceFolder}/signature-verifier-api/.env",
-        "cwd": "${workspaceFolder}"
-      },
+        "args": ["${workspaceFolder}/api-nest/src/main.ts"],
+        "runtimeArgs": ["--nolazy", "-r", "ts-node/register", "-r", "tsconfig-paths/register"],
+        "sourceMaps": true,
+        "cwd": "${workspaceFolder}/api-nest",
+        "console": "integratedTerminal",
+        "skipFiles": ["<node_internals>/**"]
+      }
     ]
 }
