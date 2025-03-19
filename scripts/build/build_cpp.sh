@@ -1,33 +1,33 @@
 #!/bin/bash
 
 # run from root
-# first argument should register | dsc | disclose
-if [[  $1 != "register" && $1 != "dsc" && $1 != "disclose" ]]; then
-    echo "first argument should be register | dsc | disclose"
+# first argument should signature | dsc | disclose
+if [[  $1 != "signature" && $1 != "dsc" && $1 != "disclose" ]]; then
+    echo "first argument should be signature | dsc | disclose"
     exit 1
 fi
 
-REGISTER_CIRCUITS=(
-    "register_sha1_sha1_sha1_ecdsa_brainpoolP224r1:false"
-    "register_sha1_sha1_sha1_ecdsa_secp256r1:false"
-    "register_sha1_sha1_sha1_rsa_65537_2048:false"
-    "register_sha1_sha256_sha256_rsa_65537_4096:true"
-    "register_sha256_sha224_sha224_ecdsa_brainpoolP224r1:false"
-    "register_sha256_sha256_sha256_ecdsa_brainpoolP224r1:false"
-    "register_sha256_sha256_sha256_ecdsa_brainpoolP256r1:true"
-    "register_sha256_sha256_sha256_ecdsa_secp256r1:false"
-    "register_sha256_sha256_sha256_ecdsa_secp384r1:false"
-    "register_sha256_sha256_sha256_rsa_65537_3072:false"
-    "register_sha256_sha256_sha256_rsa_65537_4096:true"
-    "register_sha256_sha256_sha256_rsapss_3_32_4096:false"
-    "register_sha256_sha256_sha256_rsapss_65537_4096:false"
-    "register_sha384_sha384_sha384_ecdsa_brainpoolP256r1:false"
-    "register_sha384_sha384_sha384_ecdsa_brainpoolP384r1:false"
-    "register_sha384_sha384_sha384_ecdsa_secp384r1:false"
-    "register_sha512_sha512_sha512_ecdsa_brainpoolP256r1:false"
-    "register_sha512_sha512_sha512_ecdsa_brainpoolP384r1:false"
-    "register_sha512_sha512_sha512_ecdsa_brainpoolP512r1:false"
-    "register_sha512_sha512_sha512_rsa_65537_4096:false"
+SIGNATURE_CIRCUITS=(
+    "signature_sha1_sha1_sha1_ecdsa_brainpoolP224r1:false"
+    "signature_sha1_sha1_sha1_ecdsa_secp256r1:false"
+    "signature_sha1_sha1_sha1_rsa_65537_2048:false"
+    "signature_sha1_sha256_sha256_rsa_65537_4096:true"
+    "signature_sha256_sha224_sha224_ecdsa_brainpoolP224r1:false"
+    "signature_sha256_sha256_sha256_ecdsa_brainpoolP224r1:false"
+    "signature_sha256_sha256_sha256_ecdsa_brainpoolP256r1:true"
+    "signature_sha256_sha256_sha256_ecdsa_secp256r1:false"
+    "signature_sha256_sha256_sha256_ecdsa_secp384r1:false"
+    "signature_sha256_sha256_sha256_rsa_65537_3072:false"
+    "signature_sha256_sha256_sha256_rsa_65537_4096:true"
+    "signature_sha256_sha256_sha256_rsapss_3_32_4096:false"
+    "signature_sha256_sha256_sha256_rsapss_65537_4096:false"
+    "signature_sha384_sha384_sha384_ecdsa_brainpoolP256r1:false"
+    "signature_sha384_sha384_sha384_ecdsa_brainpoolP384r1:false"
+    "signature_sha384_sha384_sha384_ecdsa_secp384r1:false"
+    "signature_sha512_sha512_sha512_ecdsa_brainpoolP256r1:false"
+    "signature_sha512_sha512_sha512_ecdsa_brainpoolP384r1:false"
+    "signature_sha512_sha512_sha512_ecdsa_brainpoolP512r1:false"
+    "signature_sha512_sha512_sha512_rsa_65537_4096:false"
 )
 
 DISCLOSE_CIRCUITS=(
@@ -59,11 +59,11 @@ DSC_CIRCUITS=(
     "dsc_sha512_rsapss_65537_64_4096:false"
 )
 
-if [[ $1 == "register" ]]; then
-    allowed_circuits=("${REGISTER_CIRCUITS[@]}")
-    output="output/register"
+if [[ $1 == "signature" ]]; then
+    allowed_circuits=("${SIGNATURE_CIRCUITS[@]}")
+    output="output/signature"
     mkdir -p $output
-    basepath="./circuits/circuits/register/instances"
+    basepath="./circuits/circuits/signature/instances"
 elif [[ $1 == "dsc" ]]; then
     allowed_circuits=("${DSC_CIRCUITS[@]}")
     output="output/dsc"

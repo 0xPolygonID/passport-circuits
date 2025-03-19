@@ -32,30 +32,6 @@ export const saltLengths = [64, 48, 32];
 
 export const MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH = 40;
 
-export const DEPLOYED_CIRCUITS_REGISTER = [
-  'register_sha1_sha1_sha1_rsa_65537_4096',
-  'register_sha1_sha256_sha256_rsa_65537_4096',
-  'register_sha224_sha224_sha224_ecdsa_brainpoolP224r1',
-  'register_sha256_sha224_sha224_ecdsa_secp224r1',
-  'register_sha256_sha256_sha256_ecdsa_brainpoolP256r1',
-  'register_sha256_sha256_sha256_ecdsa_brainpoolP384r1',
-  'register_sha256_sha256_sha256_ecdsa_secp256r1',
-  'register_sha256_sha256_sha256_ecdsa_secp384r1',
-  'register_sha256_sha256_sha256_rsa_3_4096',
-  'register_sha256_sha256_sha256_rsa_65537_4096',
-  'register_sha256_sha256_sha256_rsapss_3_32_2048',
-  'register_sha256_sha256_sha256_rsapss_65537_32_2048',
-  'register_sha256_sha256_sha256_rsapss_65537_32_3072',
-  'register_sha384_sha384_sha384_ecdsa_brainpoolP384r1',
-  //'register_sha384_sha384_sha384_ecdsa_brainpoolP512r1',//
-  'register_sha384_sha384_sha384_ecdsa_secp384r1',
-  'register_sha384_sha384_sha384_rsapss_65537_48_2048',
-  'register_sha1_sha1_sha1_ecdsa_brainpoolP224r1',
-  //'register_sha512_sha512_sha512_ecdsa_brainpoolP512r1',//
-  'register_sha512_sha512_sha512_rsa_65537_4096',
-  'register_sha512_sha512_sha512_rsapss_65537_64_2048',
-]
-
 export const OFAC_TREE_LEVELS = 64;
 
 export const DEPLOYED_CIRCUITS_DSC = [
@@ -107,38 +83,13 @@ export const MAX_CERT_BYTES: Partial<Record<keyof typeof SignatureAlgorithmIndex
 export const ECDSA_K_LENGTH_FACTOR = 2;
 // possible values because of sha1 constaints: 192,320,384, 448, 576, 640
 
-export const CIRCUIT_TYPES = ['dsc', 'register', 'vc_and_disclose']
+export const CIRCUIT_TYPES = ['dsc', 'vc_and_disclose']
 export const circuitNameFromMode = {
   prove: 'prove',
   prove_onchain: 'prove',
   prove_offchain: 'prove',
-  register: 'prove',
   vc_and_disclose: 'vc_and_disclose',
   dsc: 'dsc',
-};
-
-export enum RegisterVerifierId {
-  register_sha256_sha256_sha256_rsa_65537_4096 = 0,
-  register_sha256_sha256_sha256_ecdsa_brainpoolP384r1 = 1,
-  register_sha256_sha256_sha256_ecdsa_secp256r1 = 2,
-  register_sha256_sha256_sha256_ecdsa_secp384r1 = 3,
-  register_sha256_sha256_sha256_rsa_3_4096 = 4,
-  register_sha256_sha256_sha256_rsapss_3_32_2048 = 5,
-  register_sha256_sha256_sha256_rsapss_65537_32_2048 = 6,
-  register_sha256_sha256_sha256_rsapss_65537_32_3072 = 7,
-  register_sha384_sha384_sha384_ecdsa_brainpoolP384r1 = 8,
-  register_sha384_sha384_sha384_ecdsa_brainpoolP512r1 = 9,
-  register_sha384_sha384_sha384_ecdsa_secp384r1 = 10,
-  register_sha512_sha512_sha512_ecdsa_brainpoolP512r1 = 11,
-  register_sha512_sha512_sha512_rsa_65537_4096 = 12,
-  register_sha512_sha512_sha512_rsapss_65537_64_2048 = 13,
-  register_sha1_sha1_sha1_rsa_65537_4096 = 14,
-  register_sha1_sha256_sha256_rsa_65537_4096 = 15,
-  register_sha224_sha224_sha224_ecdsa_brainpoolP224r1 = 16,
-  register_sha256_sha224_sha224_ecdsa_secp224r1 = 17,
-  register_sha256_sha256_sha256_ecdsa_brainpoolP256r1 = 18,
-  register_sha1_sha1_sha1_ecdsa_brainpoolP224r1 = 19,
-  register_sha384_sha384_sha384_rsapss_65537_48_2048 = 20,
 };
 
 export enum DscVerifierId {
@@ -231,9 +182,9 @@ export const revealedDataTypes = {
 }
 
 export const CIRCUIT_CONSTANTS = {
-  REGISTER_NULLIFIER_INDEX: 0,
-  REGISTER_COMMITMENT_INDEX: 1,
-  REGISTER_MERKLE_ROOT_INDEX: 2,
+  SIGNATURE_NULLIFIER_INDEX: 0,
+  SIGNATURE_COMMITMENT_INDEX: 1,
+  SIGNATURE_MERKLE_ROOT_INDEX: 2,
 
   DSC_TREE_LEAF_INDEX: 0,
   DSC_CSCA_ROOT_INDEX: 1,
@@ -544,5 +495,4 @@ qzOBhID0Nxk4k9sW1uT6ocW1xp1SB2WotORssOKIAOLJM8IbPl6n/DkYNcfvyXI7
 -----END RSA PUBLIC KEY-----`;
 
 export const DEFAULT_RPC_URL = 'https://mainnet.optimism.io';
-export const REGISTER_CONTRACT_ADDRESS = '0x3F346FFdC5d583e4126AF01A02Ac5b9CdB3f1909';
 export const SBT_CONTRACT_ADDRESS = '0x601Fd54FD11C5E77DE84d877e55B829aff20f0A6';

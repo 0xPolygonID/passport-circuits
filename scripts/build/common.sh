@@ -43,7 +43,7 @@ build_circuit() {
     
     # Set circuit path based on CIRCUIT_TYPE
     local CIRCUIT_PATH
-    if [ "$CIRCUIT_TYPE" = "register" ] || [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
+    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
         CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
     else
         CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
@@ -103,9 +103,9 @@ build_circuit() {
     fi
 
     # Copy verifier to contracts directory
-    mkdir -p ../contracts/contracts/verifiers/local/${CIRCUIT_TYPE}/
+    mkdir -p ./contracts/verifiers/${CIRCUIT_TYPE}/
     cp ${OUTPUT_DIR}/${CIRCUIT_NAME}/Verifier_${CIRCUIT_NAME}.sol \
-        ../contracts/contracts/verifiers/local/${CIRCUIT_TYPE}/Verifier_${CIRCUIT_NAME}.sol
+        ./contracts/verifiers/${CIRCUIT_TYPE}/Verifier_${CIRCUIT_NAME}.sol
     
     echo -e "${BLUE}Copied Verifier_${CIRCUIT_NAME}.sol to contracts${NC}"
 
