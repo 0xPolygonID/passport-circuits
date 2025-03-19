@@ -1,14 +1,42 @@
 # ZK Passport
+## Project Structure
+- `circuits`: circuits for verification of DSC and signature for the different signature algorithms.
+- `contracts/verifiers`: groth16 verifier contracts built from the circuits.
+- `package`: files needed for generation of witness calculator from `witnesscalc-template` project.
+- `scripts`: scripts for building and packaging
+- `tests`: tests for the different circuits.
 
+## Installation and compilation
 1. Install dependencies
-```
-git submodule update --init --recursive
-```
-```
-npm install
-```
+  ```shell
+  git submodule update --init --recursive
+  ```
+  ```shell
+  npm install
+  ```
+2. Build circuits for the different instances of signature algorithms based on scripts in `scripts/build/`. 
+  ```shell
+  npm run build-dsc
+  ```
+  ```shell
+  npm run build-signature
+  ```
+  Results for the builds in `build` folder.
+  
+  You can select which circuits to build by updating `:true` of `:false` in the scripts for circuits in the `CIRCUITS` variable.
 
-## test
+3. Generate package for the different instances of signature algorithms based on scripts in `scripts/package/`.
+  ```shell
+  npm run package-dsc
+  ```
+  ```shell
+  npm run package-signature
+  ```
+  Results for the packages in `package` folder.
+  
+  You can select which circuits to package by updating `:true` of `:false` in the scripts for circuits in the `CIRCUITS` variable.
+
+## Test
 You can change `sigAlgs` in `test_cases.ts` to run specific signature algorithm.
 ```
 npm run test-dsc

@@ -19,8 +19,8 @@ CIRCUITS=(
     "signature_sha256_sha256_sha256_ecdsa_secp256r1:22:false"
     "signature_sha256_sha256_sha256_ecdsa_secp384r1:23:false"
     "signature_sha384_sha384_sha384_ecdsa_brainpoolP384r1:23:false"
-    "signature_sha384_sha384_sha384_ecdsa_brainpoolP512r1:24:true"
-    "signature_sha384_sha384_sha384_ecdsa_secp384r1:23:true"
+    "signature_sha384_sha384_sha384_ecdsa_brainpoolP512r1:24:false"
+    "signature_sha384_sha384_sha384_ecdsa_secp384r1:23:false"
     "signature_sha512_sha512_sha512_ecdsa_brainpoolP512r1:24:false"
     
     # RSA circuits

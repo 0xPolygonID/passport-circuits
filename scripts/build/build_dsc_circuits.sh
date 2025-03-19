@@ -18,7 +18,7 @@ CIRCUITS=(
     "dsc_sha256_ecdsa_secp256r1:22:false"
     "dsc_sha256_ecdsa_secp384r1:23:false"
     "dsc_sha384_ecdsa_brainpoolP384r1:23:false"
-    "dsc_sha384_ecdsa_brainpoolP512r1:24:true"
+    "dsc_sha384_ecdsa_brainpoolP512r1:24:false"
     "dsc_sha384_ecdsa_secp384r1:23:false"
     "dsc_sha512_ecdsa_brainpoolP512r1:24:false"
 
