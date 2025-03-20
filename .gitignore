@@ -4,3 +4,8 @@ build/
 node_modules/
 err.log
 .env
+package/**/*.r1cs
+package/**/**/bin/
+**/*.a
+**/*.so
+**/*.h

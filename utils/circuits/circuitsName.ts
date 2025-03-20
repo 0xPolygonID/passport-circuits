@@ -1,9 +1,7 @@
 import { PassportData } from '../types';
 
-export function getCircuitNameFromPassportData(passportData: PassportData, circuitType: 'register' | 'dsc' | 'signature') {
-  if (circuitType === 'register') {
-    return getRegisterNameFromPassportData(passportData);
-  } else if (circuitType === 'signature') {
+export function getCircuitNameFromPassportData(passportData: PassportData, circuitType: 'dsc' | 'signature') {
+  if (circuitType === 'signature') {
     return getSignatureNameFromPassportData(passportData);
   } else {
     return getDSCircuitNameFromPassportData(passportData);
@@ -73,85 +71,6 @@ function getDSCircuitNameFromPassportData(passportData: PassportData) {
     }
   } else {
     console.error('Unsupported signature algorithm:', signatureAlgorithm);
-    throw new Error('Unsupported signature algorithm');
-  }
-}
-
-function getRegisterNameFromPassportData(passportData: PassportData) {
-  console.log('Getting register circuit name from passport data...');
-
-  if (!passportData.passportMetadata) {
-    console.error('Passport metadata is missing');
-    throw new Error("Passport data are not parsed");
-  }
-  const passportMetadata = passportData.passportMetadata;
-
-  if (!passportMetadata.cscaFound) {
-    console.error('CSCA not found in passport metadata');
-    throw new Error("CSCA not found");
-  }
-
-  const parsedDsc = passportData.dsc_parsed;
-
-  const dgHashAlgo = passportMetadata.dg1HashFunction;
-  const eContentHashAlgo = passportMetadata.eContentHashFunction;
-  const signedAttrHashAlgo = passportMetadata.signedAttrHashFunction;
-  const sigAlg = passportMetadata.signatureAlgorithm;
-
-  console.log('DG Hash Algorithm:', dgHashAlgo);
-  console.log('eContent Hash Algorithm:', eContentHashAlgo);
-  console.log('Signed Attributes Hash Algorithm:', signedAttrHashAlgo);
-  console.log('Signature Algorithm:', sigAlg);
-
-  if (parsedDsc.signatureAlgorithm === 'ecdsa') {
-    console.log('Processing ECDSA signature...');
-    const {
-      curveOrExponent,
-    } = passportMetadata
-    console.log('ECDSA curve:', curveOrExponent);
-    const circuitName = `register_${dgHashAlgo}_${eContentHashAlgo}_${signedAttrHashAlgo}_${sigAlg}_${curveOrExponent}`;
-    console.log('Generated circuit name:', circuitName);
-    return circuitName;
-
-  } else if (parsedDsc.signatureAlgorithm === 'rsa') {
-    console.log('Processing RSA signature...');
-    const {
-      curveOrExponent,
-      signatureAlgorithmBits
-    } = passportMetadata
-    console.log('RSA exponent:', curveOrExponent);
-    console.log('RSA bits:', signatureAlgorithmBits);
-
-    if (signatureAlgorithmBits <= 4096) {
-      const circuitName = `register_${dgHashAlgo}_${eContentHashAlgo}_${signedAttrHashAlgo}_${sigAlg}_${curveOrExponent}_${4096}`;
-      console.log('Generated circuit name:', circuitName);
-      return circuitName;
-    } else {
-      console.error('RSA key length exceeds maximum supported length');
-      throw new Error(`Unsupported key length: ${signatureAlgorithmBits}`);
-    }
-
-  } else if (parsedDsc.signatureAlgorithm === 'rsapss') {
-    console.log('Processing RSA-PSS signature...');
-    const {
-      curveOrExponent,
-      saltLength,
-      signatureAlgorithmBits
-    } = passportMetadata
-    console.log('RSA-PSS exponent:', curveOrExponent);
-    console.log('RSA-PSS salt length:', saltLength);
-    console.log('RSA-PSS bits:', signatureAlgorithmBits);
-
-    if (signatureAlgorithmBits <= 4096) {
-      const circuitName = `register_${dgHashAlgo}_${eContentHashAlgo}_${signedAttrHashAlgo}_${sigAlg}_${curveOrExponent}_${saltLength}_${signatureAlgorithmBits}`;
-      console.log('Generated circuit name:', circuitName);
-      return circuitName;
-    } else {
-      console.error('RSA-PSS key length exceeds maximum supported length');
-      throw new Error(`Unsupported key length: ${signatureAlgorithmBits}`);
-    }
-  } else {
-    console.error('Unsupported signature algorithm:', parsedDsc.signatureAlgorithm);
     throw new Error('Unsupported signature algorithm');
   }
 }

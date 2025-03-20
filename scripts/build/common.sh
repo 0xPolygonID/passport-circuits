@@ -34,6 +34,7 @@ build_circuit() {
     local CIRCUIT_TYPE=$2
     local POWEROFTAU=$3
     local OUTPUT_DIR=$4
+    local PACKAGE_DIR=$5
     local START_TIME=$(date +%s)
 
     echo -e "${BLUE}Compiling circuit: $CIRCUIT_NAME${NC}"
@@ -43,7 +44,7 @@ build_circuit() {
     
     # Set circuit path based on CIRCUIT_TYPE
     local CIRCUIT_PATH
-    if [ "$CIRCUIT_TYPE" = "register" ] || [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
+    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
         CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
     else
         CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
@@ -57,12 +58,27 @@ build_circuit() {
         --r1cs --O1 --wasm -c \
         --output ${OUTPUT_DIR}/${CIRCUIT_NAME}/
 
+    echo -e "${BLUE}Copying package files${NC}"
+    # Create package directory
+    mkdir -p ${PACKAGE_DIR}/${CIRCUIT_NAME}/
+
+    # Copy .cpp .dat and .r1cs to package
+    cp ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
+        ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs
+
+    cp ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME}.cpp \
+        ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
+
+    cp ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME}.dat \
+        ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.dat
+
+
     echo -e "${BLUE}Building zkey${NC}"
     NODE_OPTIONS="--max-old-space-size=40960" yarn snarkjs groth16 setup \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
         build/powersOfTau28_hez_final_${POWEROFTAU}.ptau \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey
-
+    
     # Generate and contribute random string
     local RAND_STR=$(get_random_string)
     echo $RAND_STR | yarn snarkjs zkey contribute \
@@ -103,9 +119,9 @@ build_circuit() {
     fi
 
     # Copy verifier to contracts directory
-    mkdir -p ../contracts/contracts/verifiers/local/${CIRCUIT_TYPE}/
+    mkdir -p ./contracts/verifiers/${CIRCUIT_TYPE}/
     cp ${OUTPUT_DIR}/${CIRCUIT_NAME}/Verifier_${CIRCUIT_NAME}.sol \
-        ../contracts/contracts/verifiers/local/${CIRCUIT_TYPE}/Verifier_${CIRCUIT_NAME}.sol
+        ./contracts/verifiers/${CIRCUIT_TYPE}/Verifier_${CIRCUIT_NAME}.sol
     
     echo -e "${BLUE}Copied Verifier_${CIRCUIT_NAME}.sol to contracts${NC}"
 
@@ -120,6 +136,7 @@ build_circuits() {
     local CIRCUITS=("$@")
     local CIRCUIT_TYPE="$1"
     local OUTPUT_DIR="$2"
+    local PACKAGE_DIR="$3"
     shift 2 
     local TOTAL_START_TIME=$(date +%s)
 
@@ -132,7 +149,7 @@ build_circuits() {
             download_ptau $POWEROFTAU
             # Build circuit
             echo -e "${BLUE}Building circuit $CIRCUIT_NAME${NC}"
-            build_circuit "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$POWEROFTAU" "$OUTPUT_DIR"
+            build_circuit "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$POWEROFTAU" "$OUTPUT_DIR" "$PACKAGE_DIR"
         else
             echo -e "${GRAY}Skipping build for $CIRCUIT_NAME${NC}"
         fi

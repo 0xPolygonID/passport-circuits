@@ -4,13 +4,15 @@
   "main": "index.js",
   "scripts": {
     "test-dsc": "npx ts-mocha --max-old-space-size=51200 'tests/dsc/dsc.test.ts' --exit",
-    "test-register": "npx ts-mocha --max-old-space-size=40960 'tests/register/register.test.ts' --exit",
     "test-signature": "npx ts-mocha --max-old-space-size=40960 'tests/signature/signature.test.ts' --exit",
-    "build-all": "bash scripts/build/build_register_circuits.sh && bash scripts/build/build_dsc_circuits.sh && bash scripts/build/build_disclose_circuits.sh",
-    "build-disclose": "bash scripts/build/build_disclose_circuits.sh",
+    "build-all": "bash scripts/build/build_dsc_circuits.sh && bash scripts/build/build_signature_circuits.sh",
     "build-dsc": "bash scripts/build/build_dsc_circuits.sh",
-    "build-register": "bash scripts/build/build_register_circuits.sh",
-    "build-signature": "bash scripts/build/build_signature_circuits.sh"
+    "build-signature": "bash scripts/build/build_signature_circuits.sh",
+    "package-all": "bash scripts/package/package_dsc_circuits.sh && bash scripts/package/package_signature_circuits.sh",
+    "package-dsc": "bash scripts/package/package_dsc_circuits.sh",
+    "package-signature": "bash scripts/package/package_signature_circuits.sh",
+    "integration-dsc": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/dsc/dsc.integration.ts' --exit",
+    "integration-signature": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/signature/signature.integration.ts' --exit"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +25,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.13.10",
     "@types/node-forge": "^1.3.11",
+    "@types/snarkjs": "^0.7.9",
     "chai": "^4.3.8",
     "mocha": "^10.3.0",
     "prettier": "^3.5.3",

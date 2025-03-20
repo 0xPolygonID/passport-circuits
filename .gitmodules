@@ -1,0 +1,3 @@
+[submodule "witnesscalc-template"]
+	path = witnesscalc-template
+	url = https://github.com/olomix/witnesscalc-template
