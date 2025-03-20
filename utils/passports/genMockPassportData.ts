@@ -255,11 +255,12 @@ export function genMockPassportData(
   return initPassportDataParsing({
     dsc: dsc,
     mrz: mrz,
+    dg1Hash: dataGroupHashes.find(([dgNum]) => dgNum === 1)?.[1] || [],
     dg2Hash: dataGroupHashes.find(([dgNum]) => dgNum === 2)?.[1] || [],
     eContent: eContent,
     signedAttr: signedAttr,
     encryptedDigest: signatureBytes,
-    documentType: "mock_passport"
+    documentType: 'mock_passport',
   });
 }
 
