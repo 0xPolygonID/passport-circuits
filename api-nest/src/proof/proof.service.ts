@@ -6,8 +6,7 @@ import {
   byteEncoder,
 } from '@0xpolygonid/js-sdk';
 import * as path from 'path';
-import { genMockPassportData } from './utils/passports/genMockPassportData';
-import { SignatureAlgorithm } from './utils/types';
+import { PassportData } from './utils/types';
 import serialized_dsc_tree from './utils/pubkeys/serialized_dsc_tree.json';
 import { poseidon6 } from 'poseidon-lite';
 import { generateCircuitInputsSignature } from './utils/circuits/generateInputs';
@@ -22,34 +21,7 @@ export class ProofService {
     this._prover = new NativeProver(circuitStorage);
   }
 
-  async generateProof(): Promise<string> {
-    const sigAlgs = {
-      dgHashAlgo: 'sha256',
-      eContentHashAlgo: 'sha256',
-      hashFunction: 'sha256',
-      sigAlg: 'rsa',
-      domainParameter: '65537',
-      keyLength: '2048',
-    };
-
-    const {
-      dgHashAlgo,
-      eContentHashAlgo,
-      hashFunction,
-      sigAlg,
-      domainParameter,
-      keyLength,
-    } = sigAlgs;
-
-    const passportData = genMockPassportData(
-      dgHashAlgo,
-      eContentHashAlgo,
-      `${sigAlg}_${hashFunction}_${domainParameter}_${keyLength}` as SignatureAlgorithm,
-      'FRA',
-      '000101',
-      '300101',
-    );
-
+  async generateProof(passportData: PassportData): Promise<string> {
     const secret = poseidon6(
       'SECRET'.split('').map((x) => BigInt(x.charCodeAt(0))),
     ).toString();
