@@ -45,3 +45,21 @@ npm run test-dsc
 npm run test-signature
 ```
 
+## Integration test
+Once the circuits are built and packaged you can test integrations generating witnesses, proofs and verifying the proofs for desired circuit or full test suite.
+- Single circuit specified in `test_cases.ts` in `sigAlgs`
+```
+npm run integration-dsc
+```
+or 
+```
+npm run integration-signature
+```
+- Full suite specified in `test_cases.ts` in `fullSigAlgs`
+```
+FULL_TEST_SUITE=true npm run integration-dsc
+```
+or
+```
+FULL_TEST_SUITE=true npm run integration-signature
+```

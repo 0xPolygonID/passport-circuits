@@ -50,11 +50,13 @@ testSuite.forEach(({ sigAlg, hashFunction, domainParameter, keyLength }) => {
   }`, function () {
     this.timeout(0); // Disable timeout
     let witness_calculator;
+    let circuitName;
 
     const inputs = generateCircuitInputsDSC(passportData.dsc, serialized_csca_tree);
 
     before(async () => {
-      witness_calculator = `./package/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/bin/${getCircuitNameFromPassportData(passportData, 'dsc')}`;
+      circuitName = getCircuitNameFromPassportData(passportData, 'dsc');
+      witness_calculator = `./package/dsc/${circuitName}/bin/${circuitName}`;
     });
 
     it('should find the witness calculator', async function () {
@@ -64,14 +66,14 @@ testSuite.forEach(({ sigAlg, hashFunction, domainParameter, keyLength }) => {
     it('should compute a valid witness, generate proof and verify it', async () => {
       // 1. Generate input.json
       fs.writeFileSync(
-        `./package/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/bin/input.json`,
+        `./package/dsc/${circuitName}/bin/input.json`,
         JSON.stringify(inputs, null, 2)
       );
 
       // 2. Generate witness
       try {
         await execute(
-          `./package/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/bin/${getCircuitNameFromPassportData(passportData, 'dsc')} ./package/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/bin/input.json ./package/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/bin/output.wtns`
+          `./package/dsc/${circuitName}/bin/${circuitName} ./package/dsc/${circuitName}/bin/input.json ./package/dsc/${circuitName}/bin/output.wtns`
         );
       } catch (error) {
         console.log('error!!!', error);
@@ -80,15 +82,12 @@ testSuite.forEach(({ sigAlg, hashFunction, domainParameter, keyLength }) => {
 
       // 3. Generate proof
       const { proof, publicSignals } = await snarkjs.groth16.prove(
-        `./build/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/${getCircuitNameFromPassportData(passportData, 'dsc')}_final.zkey`,
-        `./package/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/bin/output.wtns`
+        `./build/dsc/${circuitName}/${circuitName}_final.zkey`,
+        `./package/dsc/${circuitName}/bin/output.wtns`
       );
-      console.log('proof', proof);
 
       const vkey = JSON.parse(
-        fs.readFileSync(
-          `./build/dsc/${getCircuitNameFromPassportData(passportData, 'dsc')}/${getCircuitNameFromPassportData(passportData, 'dsc')}_vkey.json`
-        ).toString()
+        fs.readFileSync(`./build/dsc/${circuitName}/${circuitName}_vkey.json`).toString()
       );
 
       // 4. Verify proof

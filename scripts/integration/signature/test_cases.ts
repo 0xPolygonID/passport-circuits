@@ -1,25 +1,5 @@
 export const sigAlgs = [
   {
-    dgHashAlgo: 'sha384',
-    eContentHashAlgo: 'sha384',
-    hashFunction: 'sha384',
-    sigAlg: 'ecdsa',
-    domainParameter: 'secp384r1',
-    keyLength: '384',
-  },
-];
-/*export const sigAlgs = [
-  {
-    dgHashAlgo: 'sha384',
-    eContentHashAlgo: 'sha384',
-    hashFunction: 'sha384',
-    sigAlg: 'rsapss',
-    domainParameter: '65537',
-    keyLength: '2048',
-  },
-];*/
-/*export const sigAlgs = [
-  {
     dgHashAlgo: 'sha256',
     eContentHashAlgo: 'sha256',
     hashFunction: 'sha256',
@@ -27,7 +7,7 @@ export const sigAlgs = [
     domainParameter: '65537',
     keyLength: '4096',
   },
-];*/
+];
 
 export const fullSigAlgs = [
   // RSA
@@ -47,14 +27,14 @@ export const fullSigAlgs = [
     domainParameter: '65537',
     keyLength: '2048',
   },
-  {
+  /*{
     dgHashAlgo: 'sha256',
     eContentHashAlgo: 'sha256',
     hashFunction: 'sha256',
     sigAlg: 'rsa',
     domainParameter: '3',
     keyLength: '2048',
-  },
+  },*/ // Not found in instances
   {
     dgHashAlgo: 'sha256',
     eContentHashAlgo: 'sha256',
@@ -71,6 +51,7 @@ export const fullSigAlgs = [
     domainParameter: '65537',
     keyLength: '2048',
   },
+
   // RSAPSS
   {
     dgHashAlgo: 'sha256',
@@ -112,6 +93,7 @@ export const fullSigAlgs = [
     domainParameter: '65537',
     keyLength: '2048',
   },
+
   // ECDSA
   // brainpool
   {
