@@ -1,5 +1,7 @@
 pragma circom 2.1.9;
 
+include "./bytes.circom";
+
 include "circomlib/circuits/poseidon.circom";
 
 function MAX_BYTES_IN_FIELD() {

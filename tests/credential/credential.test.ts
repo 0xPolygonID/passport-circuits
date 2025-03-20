@@ -6,6 +6,8 @@ import { genMockPassportData } from '../../utils/passports/genMockPassportData';
 import { formatMrz } from '../../utils/passports/format';
 import { hashAlgs, fullHashAlgs } from './test_cases';
 import { wasm as wasm_tester } from 'circom_tester';
+import { Poseidon } from '@iden3/js-crypto';
+
 dotenv.config();
 
 const path = require('path');
@@ -18,11 +20,6 @@ interface Circuit {
   release: () => void;
 }
 
-function bytesToHex(witnesses: number[], shaLength: number): string {
-  const shaBytesSize = shaLength / 8;
-  const shaRawBytes = witnesses.slice(12, 12 + shaBytesSize);
-  return Buffer.from(shaRawBytes.map((v) => Number(v))).toString('hex');
-}
 
 async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize: number) {
   const mrzByteArray = formatMrz(mrz);
@@ -142,6 +139,7 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     issuer: '17295047724547381467021463956538704517040397694116563840254657915956112809540',
     issuanceDate: 1742226596,
 
+    linkNonce: 1,
     templateRoot: templateRoot,
     siblings: siblings,
   };
@@ -231,12 +229,11 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
         w[11] === 20661880459224054680311568334655353588113926319608771155576598304028828385849n
       );
 
-      // Compare the hash value with the expected hash value
-      const expectedHash = passportData.dg1Hash
-        ? Buffer.from(passportData.dg1Hash).toString('hex')
-        : '';
-      assert(bytesToHex(w, shaLength) === expectedHash, `Hashes do not match`);
-      console.log(`dg1 hash value ${expectedHash}`);
+      const linkId = Poseidon.spongeHashX(
+        [Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)), BigInt(inputs.linkNonce)],
+        2
+      );
+      assert(w[12] === linkId);
     });
     /*
   it(`Double last name`, async function() {

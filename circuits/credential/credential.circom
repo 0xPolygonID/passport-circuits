@@ -6,15 +6,22 @@ include "../utils/passport/parser/extractors.circom";
 include "../utils/crypto/bitify/bytes.circom";
 include "../utils/crypto/hasher/hash.circom";
 include "../utils/iden3/claimbuilder.circom";
+include "../utils/iden3/bytes.circom";
+include "../utils/iden3/linkId.circom";
+
+include "circomlib/circuits/poseidon.circom";
 
 template Integrity(hashAlgo) {
     signal input dg1[DG1_TD3_SIZE()];
-    signal output dg1ShaBytes[hashAlgo / 8];
+    signal output poseidonDg1Hash;
     
     var hashAlgBytesSize = hashAlgo / 8;
     signal dg1Bits[DG1_TD3_SIZE_BITS()] <== BytesToBitsArray(DG1_TD3_SIZE())(dg1);
     signal dg1ShaBits[hashAlgo] <== ShaHashBits(DG1_TD3_SIZE_BITS(), hashAlgo)(dg1Bits);
+    
+    signal dg1ShaBytes[hashAlgo / 8];
     dg1ShaBytes <== BitsToBytesArray(hashAlgo)(dg1ShaBits);
+    poseidonDg1Hash <== PaddingAndPoseidon(hashAlgo/8)(dg1ShaBytes);
 }
 
 /*
@@ -41,6 +48,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input issuer;
     signal input issuanceDate;
 
+    signal input linkNonce;
     signal input templateRoot;
     signal input siblings[smtChanges][nLevels];
 
@@ -55,7 +63,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal output documentDOE;
     signal output hashIndex;
     signal output hashValue;
-    signal output dg1Hash[hashAlgo / 8];
+    signal output linkId;
 
     component documentCodeExtractor = Extractor(DG1_TD3_SIZE(), documentCodePosition(), documentCodeSize());
     documentCodeExtractor.dg1 <== dg1;
@@ -187,6 +195,6 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     hashIndex <== hI.out;
     hashValue <== hV.out;
 
-    // To check integrity of dg1
-    dg1Hash <== Integrity(hashAlgo)(dg1);
+    signal poseidonDg1Hash <== Integrity(hashAlgo)(dg1);
+    linkId <== LinkID()(poseidonDg1Hash, linkNonce);
 }
