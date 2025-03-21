@@ -45,13 +45,12 @@ npm run test-dsc
 npm run test-signature
 ```
 
-## Integration test
+## Integration tests
 Once the circuits are built and packaged you can test integrations generating witnesses, proofs and verifying the proofs for desired circuit or full test suite.
-First of all you need to increase stack size for the OS with this command:
-```
-ulimit -s 65520
-```
-And then execute integration tests.
+
+First of all you need to download `prover` executable from `rapidsnark` for your OS from https://github.com/iden3/rapidsnark/releases and copy it to `rapidsnark` folder.
+
+Now you are ready to execute integration tests.
 
 - Single circuit specified in `test_cases.ts` in `sigAlgs`
 ```

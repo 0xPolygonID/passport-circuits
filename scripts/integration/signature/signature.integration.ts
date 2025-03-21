@@ -76,7 +76,7 @@ testSuite.forEach(
           `./package/signature/${circuitName}/bin/input.json`,
           JSON.stringify(inputs, null, 2)
         );
-
+        let start = performance.now();
         // 2. Generate witness
         try {
           await execute(
@@ -86,20 +86,45 @@ testSuite.forEach(
           console.log('error!!!', error);
           // if the promise rejects, we land here
         }
-
+        let stop = performance.now();
+        let timeElapsed = stop - start;
+        console.log('Time witness generation: ', timeElapsed);
+  
+        start = performance.now();
         // 3. Generate proof
         const { proof, publicSignals } = await snarkjs.groth16.prove(
           `./build/signature/${circuitName}/${circuitName}_final.zkey`,
           `./package/signature/${circuitName}/bin/output.wtns`
         );
-
+        stop = performance.now();
+        timeElapsed = stop - start;
+        console.log('Time proof generation (snarkjs): ', timeElapsed);
+  
+        start = performance.now();
+        // 4. Generate proof (rapidsnark)
+        try {
+          await execute(
+            `./rapidsnark/prover ./build/signature/${circuitName}/${circuitName}_final.zkey ./package/signature/${circuitName}/bin/output.wtns ./package/signature/${circuitName}/bin/proof.json ./package/signature/${circuitName}/bin/public.json`
+          );        
+        } catch (error) {
+          console.log('error!!!', error);
+          // if the promise rejects, we land here
+        }
+        stop = performance.now();
+        timeElapsed = stop - start;
+        console.log('Time proof generation (rapidsnark): ', timeElapsed);
+  
         const vkey = JSON.parse(
           fs.readFileSync(`./build/signature/${circuitName}/${circuitName}_vkey.json`).toString()
         );
 
-        // 4. Verify proof
+        start = performance.now();
+        // 5. Verify proof
         const verification = await snarkjs.groth16.verify(vkey, publicSignals, proof);
         expect(verification).to.be.true;
+        stop = performance.now();
+        timeElapsed = stop - start;
+        console.log('Time verification: ', timeElapsed);  
       });
     });
   }
