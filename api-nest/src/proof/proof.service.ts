@@ -19,11 +19,13 @@ import { ConfigService } from '@nestjs/config';
 import hubAbi from '../contracts_abi/hub.json';
 import registryAbi from '../contracts_abi/registry.json';
 import { getCircuitNameFromPassportData } from './utils/circuits/circuitsName';
+import { DscVerifierId } from './utils/constants/constants';
 
 @Injectable()
 export class ProofService {
   private readonly _prover: NativeProver;
   private readonly _rpcProvider: ethers.JsonRpcProvider;
+  private readonly _wallet?: ethers.Wallet;
   private readonly _hubContract: ethers.Contract;
   private readonly _registryContract: ethers.Contract;
 
@@ -39,6 +41,13 @@ export class ProofService {
     }
     this._rpcProvider = new ethers.JsonRpcProvider(rpcURL);
 
+    const walletKey = this.configService.get<string>('WALLET_KEY');
+    if (walletKey) {
+      this._wallet = new ethers.Wallet(walletKey, this._rpcProvider);
+    } else {
+      Logger.warn('WALLET_KEY is not provided, readonly mode');
+    }
+
     const hubAddress = this.configService.get<string>('HUB_ADDRESS');
     if (!hubAddress) {
       throw new Error('provide HUB_ADDRESS');
@@ -46,22 +55,27 @@ export class ProofService {
     this._hubContract = new ethers.Contract(
       hubAddress,
       hubAbi,
-      this._rpcProvider,
+      this._wallet ?? this._rpcProvider,
     );
     const registryAddress = this.configService.get<string>('REGISTRY_ADDRESS');
     if (!registryAddress) {
       throw new Error('provide REGISTRY_ADDRESS');
     }
-    this._registryContract = this._hubContract = new ethers.Contract(
+    this._registryContract = new ethers.Contract(
       registryAddress,
       registryAbi,
       this._rpcProvider,
     );
   }
 
-  async generateProof(passportData: PassportData): Promise<string> {
+  async generateProof(
+    passportData: PassportData,
+    isMocked = false,
+  ): Promise<string> {
     // 1. verify DSC signature:
-    await this._verifyDSC(passportData);
+    if (!isMocked) {
+      await this._verifyDSC(passportData);
+    }
     // 2. generate Signature proof:
     const secret = poseidon6(
       'SECRET'.split('').map((x) => BigInt(x.charCodeAt(0))),
@@ -75,8 +89,8 @@ export class ProofService {
 
     const circuitId = getCircuitNameFromPassportData(passportData, 'signature');
     Logger.debug(`Generating proof for Signature circuit: ${circuitId}`);
-    const proof = await this._generateProof(inputs, circuitId);
-    return JSON.stringify(proof);
+    const zkProof = await this._generateProof(inputs, circuitId);
+    return JSON.stringify(zkProof);
   }
 
   private async _verifyDSC(passportData: PassportData) {
@@ -92,12 +106,28 @@ export class ProofService {
     }
     const circuitId = getCircuitNameFromPassportData(passportData, 'dsc');
     Logger.debug(`Generating proof for DSC circuit: ${circuitId}`);
-    const proof = await this._generateProof(
+    const zkProof = await this._generateProof(
       inputs as unknown as { [x: string]: string[] },
       circuitId,
     );
-    console.log(proof);
-    // TODO: send proof to `registerDscKeyCommitment` Hub SC
+    console.log(zkProof);
+
+    const dscCircuitVerifierId =
+      DscVerifierId[circuitId as keyof typeof DscVerifierId];
+
+    if (!this._wallet) {
+      throw new Error('WALLET_KEY is not provided, can not execute tx');
+    }
+    Logger.debug(`Sendit tx to hub`);
+    await this._hubContract.registerDscKeyCommitment(dscCircuitVerifierId, {
+      a: zkProof.proof.pi_a.slice(0, 2),
+      b: [
+        [zkProof.proof.pi_b[0][1], zkProof.proof.pi_b[0][0]],
+        [zkProof.proof.pi_b[1][1], zkProof.proof.pi_b[1][0]]
+      ],
+      c: zkProof.proof.pi_c.slice(0, 2),
+      pubSignals: zkProof.pub_signals,
+    });
   }
 
   private async _isDscRegistered(root: string): Promise<boolean> {
