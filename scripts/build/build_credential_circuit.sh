@@ -18,12 +18,10 @@ CIRCUITS=(
     "credential_sha512:20:false"
 )
 
-build_circuit() {
+build_circuit_graph() {
     local CIRCUIT_NAME=$1
     local CIRCUIT_TYPE=$2
-    local POWEROFTAU=$3
-    local OUTPUT_DIR=$4
-    local PACKAGE_DIR=$5
+    local OUTPUT_DIR=$3
     local START_TIME=$(date +%s)
 
     echo -e "${BLUE}Compiling circuit: $CIRCUIT_NAME${NC}"
@@ -49,4 +47,28 @@ build_circuit() {
     time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" -l ${CURR_DIR}/node_modules
 }
 
+build_circuit_graphs() {
+    local CIRCUITS=("$@")
+    local CIRCUIT_TYPE="$1"
+    local OUTPUT_DIR="$2"
+    local PACKAGE_DIR="$3"
+    shift 2 
+    local TOTAL_START_TIME=$(date +%s)
+
+    # Build circuits
+    for circuit in "${CIRCUITS[@]}"; do
+        IFS=':' read -r CIRCUIT_NAME POWEROFTAU BUILD_FLAG <<< "$circuit"
+        if [ "$BUILD_FLAG" = "true" ]; then
+            # Build circuit
+            echo -e "${BLUE}Building circuit graph $CIRCUIT_NAME${NC}"
+            build_circuit_graph "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$OUTPUT_DIR"
+        else
+            echo -e "${GRAY}Skipping build for $CIRCUIT_NAME${NC}"
+        fi
+    done
+
+    echo -e "${GREEN}Total completed in $(($(date +%s) - TOTAL_START_TIME)) seconds${NC}"
+}
+
 build_circuits "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 
+build_circuit_graphs "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 
