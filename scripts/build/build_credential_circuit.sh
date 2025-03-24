@@ -44,7 +44,7 @@ build_circuit_graph() {
 	local r1cs_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs"
 
     cd circom-witnesscalc
-    time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" -l ${CURR_DIR}/node_modules
+    time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" -l ${CURR_DIR}/node_modules -l ${CURR_DIR}/node_modules/@zk-kit/binary-merkle-root.circom/src  -l ${CURR_DIR}/node_modules/circomlib/circuits
 }
 
 build_circuit_graphs() {
