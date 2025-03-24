@@ -118,7 +118,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
         11665818515976908772146086926627988937767272157525043131077389782866401822622, // credentialSubject.govermentIdentifier
         20378936560477526294120993552723258097975107008215368308010022877877877266947, // credentialSubject.governmentIdentifierType
         10966443938224095219566683003147654763133050970169721700346734909387575337367, // credentialSubject.sex
-        1763085948543522232029667616550496120517967703023484347613954302553484294902, // credentialStatus.revocationNonce
+        18652354674254268839450839640508993614932212252620036777561285260846450401086, // credentialStatus.revocationNonce
         11896622783611378286548274235251973588039499084629981048616800443645803129554, // credentialStatus.id
         4792130079462681165428511201253235850015648352883240577315026477780493110675, // credentialSubject.id
         13483382060079230067188057675928039600565406666878111320562435194759310415773, // expirationDate.id
@@ -141,7 +141,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     log(credentialStatusID);
     log(credentialSubjectID);
     log(documentDOETimestamp * 1000000000);
-    log(issuanceDate * 1000000000);
+    log(issuanceDate);
     log(issuer);
     log(documentNationalityHash);
     log(documentIssuerHash);
@@ -159,7 +159,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
         credentialStatusID, // credentialStatus.id
         credentialSubjectID, // credentialSubject.id
         documentDOETimestamp * 1000000000, // expirationDate.id
-        issuanceDate * 1000000000, // issuanceDate.id
+        issuanceDate, // issuanceDate.id
         issuer, // issuer.id
         documentNationalityHash, // credentialSubject.nationalities
         documentIssuerHash // credentialSubject.nationalities
