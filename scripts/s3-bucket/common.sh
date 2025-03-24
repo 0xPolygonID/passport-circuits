@@ -15,23 +15,21 @@ files_circuit() {
     local START_TIME=$(date +%s)
 
     echo -e "${BLUE}Getting files for circuit: $CIRCUIT_NAME${NC}"
-    
-    # Create s3 directory
-    mkdir -p ${S3_DIR}/${CIRCUIT_NAME}/
-    
+       
     echo -e "${BLUE}Copying files${NC}"
     # Create package directory
-    mkdir -p ${S3_DIR}/${CIRCUIT_NAME}/
+    mkdir -p ${S3_DIR}/keys/${CIRCUIT_NAME}/
+    mkdir -p ${S3_DIR}/r1cs/${CIRCUIT_NAME}/
 
     # Copy .r1cs, .zkey and vkey.json to s3 folder
     cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
-        ${S3_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs
+        ${S3_DIR}/r1cs/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs
 
     cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey \
-        ${S3_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey
+        ${S3_DIR}/keys/${CIRCUIT_NAME}/circuit_final.zkey
 
     cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_vkey.json \
-        ${S3_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_vkey.json
+        ${S3_DIR}/keys/${CIRCUIT_NAME}/verification_vkey.json
 
     # Print build statistics
     echo -e "${GREEN}Copy of $CIRCUIT_NAME completed in $(($(date +%s) - START_TIME)) seconds${NC}"
