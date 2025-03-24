@@ -45,11 +45,11 @@ build_circuit() {
 	local r1cs_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs"
 
     cd circom-witnesscalc
-    time ./build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" \ 
+    time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" \ 
         -l node_modules \
         -l ./node_modules/@zk-kit/binary-merkle-root.circom/src \
         -l ./node_modules/circomlib/circuits
-	time ./calc-witness "$circuit_graph_path" "$inputs_path" "$witness_path"
+	time target/release/calc-witness "$circuit_graph_path" "$inputs_path" "$witness_path"
 
     # Compile circuit
     # circom ${CIRCUIT_PATH} \
