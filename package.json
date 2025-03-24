@@ -15,6 +15,7 @@
     "package-signature": "bash scripts/package/package_signature_circuits.sh",
     "integration-dsc": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/dsc/dsc.integration.ts' --exit",
     "integration-signature": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/signature/signature.integration.ts' --exit",
+    "integration-credential": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/credential/credential.integration.ts' --exit",
     "generate-credential-circuits": "bash scripts/build/credential_circuit_setup_instances.bash"
   },
   "keywords": [],
