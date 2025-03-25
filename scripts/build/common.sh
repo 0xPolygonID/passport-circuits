@@ -11,9 +11,9 @@ download_ptau() {
     local POWEROFTAU=$1
     mkdir -p build
     cd build
-    if [ ! -f powersOfTau28_hez_final_${POWEROFTAU}.ptau ]; then
+    if [ ! -f ppot_0080_${POWEROFTAU}.ptau ]; then
         echo -e "${YELLOW}Download power of tau....${NC}"
-        wget https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_${POWEROFTAU}.ptau
+        wget https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/pot28_0080/ppot_0080_${POWEROFTAU}.ptau
         echo -e "${GREEN}Finished download!${NC}"
     else 
         echo -e "${YELLOW}Powers of tau file already downloaded${NC}"
@@ -74,24 +74,24 @@ build_circuit() {
 
 
     echo -e "${BLUE}Building zkey${NC}"
-    NODE_OPTIONS="--max-old-space-size=40960" yarn snarkjs groth16 setup \
+    NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs groth16 setup \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
-        build/powersOfTau28_hez_final_${POWEROFTAU}.ptau \
+        build/ppot_0080_${POWEROFTAU}.ptau \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey
     
     # Generate and contribute random string
     local RAND_STR=$(get_random_string)
-    echo $RAND_STR | yarn snarkjs zkey contribute \
+    echo $RAND_STR | NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs zkey contribute \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey
 
     echo -e "${BLUE}Building vkey${NC}"
-    yarn snarkjs zkey export verificationkey \
+    NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs zkey export verificationkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_vkey.json
 
     # Generate and copy Solidity verifier
-    yarn snarkjs zkey export solidityverifier \
+    NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs zkey export solidityverifier \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/Verifier_${CIRCUIT_NAME}.sol
 
