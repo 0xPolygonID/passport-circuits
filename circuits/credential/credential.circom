@@ -39,7 +39,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input dg1[DG1_TD3_SIZE()];
     signal input lastNameSize;
     signal input firstNameSize;
-    signal input currentDate; // TODO (illia-korotia): Is field should be public input? Format: YYMMDD
+    signal input currentDate; // Format: YYMMDD
 
     signal input revocationNonce;
     signal input credentialStatusID;
