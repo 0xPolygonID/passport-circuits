@@ -10,7 +10,7 @@
     "build-dsc": "bash scripts/build/build_dsc_circuits.sh",
     "build-signature": "bash scripts/build/build_signature_circuits.sh",
     "build-credential": "bash scripts/build/build_credential_circuit.sh",
-    "package && bash scripts/build/build_credential_circuit.sh-all": "bash scripts/package/package_dsc_circuits.sh && bash scripts/package/package_signature_circuits.sh",
+    "package-all": "bash scripts/package/package_dsc_circuits.sh && bash scripts/package/package_signature_circuits.sh",
     "package-dsc": "bash scripts/package/package_dsc_circuits.sh",
     "package-signature": "bash scripts/package/package_signature_circuits.sh",
     "integration-dsc": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/dsc/dsc.integration.ts' --exit",
