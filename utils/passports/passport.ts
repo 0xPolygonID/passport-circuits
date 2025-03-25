@@ -1,4 +1,4 @@
-import { poseidon5 } from 'poseidon-lite';
+import { poseidon2, poseidon5 } from 'poseidon-lite';
 import { hashAlgos, MAX_PUBKEY_DSC_BYTES } from '../constants/constants';
 import {
   CertificateData,
@@ -13,7 +13,7 @@ import { parsePassportData } from './passport_parsing/parsePassportData';
 import { shaPad } from '../shaPad';
 import { sha384_512Pad } from '../shaPad';
 import { PassportData, SignatureAlgorithm } from '../types';
-import { customHasher, hash } from '../hash';
+import { hash } from '../hash';
 import { bytesToBigDecimal, hexToDecimal } from '../bytes';
 import { packBytesAndPoseidon } from '../hash';
 import * as forge from 'node-forge';
@@ -76,6 +76,11 @@ export function generateCommitment(
     eContent_packed_hash,
     dsc_hash,
   ]).toString();
+}
+
+export function generateLinkId(passportData: PassportData, LinkNonce: string) {
+  const dg1_packed_hash = packBytesAndPoseidon(formatMrz(passportData.mrz));
+  return poseidon2([dg1_packed_hash, LinkNonce]).toString();
 }
 
 export function generateNullifier(passportData: PassportData) {
