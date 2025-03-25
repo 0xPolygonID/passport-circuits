@@ -11,9 +11,9 @@ download_ptau() {
     local POWEROFTAU=$1
     mkdir -p build
     cd build
-    if [ ! -f ppot_0080_${POWEROFTAU}.ptau ]; then
+    if [ ! -f powersOfTau28_hez_final_${POWEROFTAU}.ptau ]; then
         echo -e "${YELLOW}Download power of tau....${NC}"
-        wget https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/pot28_0080/ppot_0080_${POWEROFTAU}.ptau
+        wget https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_${POWEROFTAU}.ptau
         echo -e "${GREEN}Finished download!${NC}"
     else 
         echo -e "${YELLOW}Powers of tau file already downloaded${NC}"
@@ -76,7 +76,7 @@ build_circuit() {
     echo -e "${BLUE}Building zkey${NC}"
     NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs groth16 setup \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
-        build/ppot_0080_${POWEROFTAU}.ptau \
+        build/powersOfTau28_hez_final_${POWEROFTAU}.ptau \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey
     
     # Generate and contribute random string
