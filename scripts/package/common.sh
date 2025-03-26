@@ -20,23 +20,6 @@ package_circuit() {
     # Create output directory
     mkdir -p ${PACKAGE_DIR}/${CIRCUIT_NAME}/
     
-    # Set circuit path based on CIRCUIT_TYPE
-    local CIRCUIT_PATH
-    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
-        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
-    else
-        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
-    fi
-
-    if [ ! -f ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs ]; then
-        echo -e "${YELLOW}Copying .r1cs file...${NC}"
-        cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
-            ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs
-        echo -e "${GREEN}Finished copying!${NC}"
-    else 
-        echo -e "${YELLOW}.r1cs file already copied${NC}"
-    fi
-
     if [ ! -f ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp ]; then
         echo -e "${YELLOW}Copying ${CIRCUIT_NAME}.cpp file...${NC}"
         cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME}.cpp \
