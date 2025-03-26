@@ -20,23 +20,6 @@ package_circuit() {
     # Create output directory
     mkdir -p ${PACKAGE_DIR}/${CIRCUIT_NAME}/
     
-    # Set circuit path based on CIRCUIT_TYPE
-    local CIRCUIT_PATH
-    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
-        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
-    else
-        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
-    fi
-
-    if [ ! -f ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs ]; then
-        echo -e "${YELLOW}Copying .r1cs file...${NC}"
-        cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
-            ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs
-        echo -e "${GREEN}Finished copying!${NC}"
-    else 
-        echo -e "${YELLOW}.r1cs file already copied${NC}"
-    fi
-
     if [ ! -f ${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp ]; then
         echo -e "${YELLOW}Copying ${CIRCUIT_NAME}.cpp file...${NC}"
         cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME}.cpp \
@@ -55,12 +38,33 @@ package_circuit() {
         echo -e "${YELLOW}${CIRCUIT_NAME}.dat file already copied${NC}"
     fi
 
+    case "$(uname)" in
+    'Darwin')
+        OS='Mac'
+        ;;
+    'Linux')
+        OS='Linux'
+        ;;
+    *)
+        echo "Unsupported platform: $(uname -a)"
+        exit 1
+        ;;
+    esac
+
     cd witnesscalc-template
     rm -rf build_witnesscalc
-    ./build_gmp.sh host
-    mkdir build_witnesscalc && cd build_witnesscalc
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../package/${CIRCUIT_TYPE}/${CIRCUIT_NAME} -DCIRCUIT_FILE=../../${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
-    make -j 8 && make install
+    echo -e "${BLUE}Compiling package for OS: ${OS}"
+    if [ "$OS" = 'Mac' ]; then
+        ./build_gmp.sh macos_arm64
+        mkdir build_witnesscalc && cd build_witnesscalc
+        cmake .. -DTARGET_PLATFORM=macos_arm64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../package/${CIRCUIT_TYPE}/${CIRCUIT_NAME} -DCIRCUIT_FILE=../../${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
+        make -j 8 && make install
+    elif [ "$OS" = 'Linux' ]; then
+        ./build_gmp.sh host
+        mkdir build_witnesscalc && cd build_witnesscalc
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../package/${CIRCUIT_TYPE}/${CIRCUIT_NAME} -DCIRCUIT_FILE=../../${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
+        make -j 8 && make install
+    fi
     cd ../..
 }
 

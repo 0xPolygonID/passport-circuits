@@ -39,4 +39,4 @@ CIRCUITS=(
     "signature_sha512_sha512_sha512_rsapss_65537_64_2048:false"
 )
 
-package_circuits "$CIRCUIT_TYPE" "$BUILD_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" º
+package_circuits "$CIRCUIT_TYPE" "$BUILD_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}"
