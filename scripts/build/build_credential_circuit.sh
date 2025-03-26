@@ -1,32 +1,50 @@
 #!/bin/bash
 
-# Common colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+source "scripts/build/common.sh"
 
-download_ptau() {
-    local POWEROFTAU=$1
-    mkdir -p build
-    cd build
-    if [ ! -f powersOfTau28_hez_final_${POWEROFTAU}.ptau ]; then
-        echo -e "${YELLOW}Download power of tau....${NC}"
-        wget https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_${POWEROFTAU}.ptau
-        echo -e "${GREEN}Finished download!${NC}"
-    else 
-        echo -e "${YELLOW}Powers of tau file already downloaded${NC}"
-    fi
-    cd ..
-}
+# Circuit-specific configurations
+CURR_DIR=$(pwd)
+CIRCUIT_TYPE="credential"
+OUTPUT_DIR="${CURR_DIR}/build/${CIRCUIT_TYPE}"
+PACKAGE_DIR="${CURR_DIR}/package/${CIRCUIT_TYPE}"
 
-get_random_string() {
-    if command -v openssl &> /dev/null; then
-        echo $(openssl rand -hex 64)
+# Define circuits and their configurations
+# format: name:poweroftau:build_flag
+CIRCUITS=(
+    "credential_sha1:20:false"
+    "credential_sha224:20:false"
+    "credential_sha256:20:true"
+    "credential_sha384:20:false"
+    "credential_sha512:20:false"
+)
+
+build_circuit_graph() {
+    local CIRCUIT_NAME=$1
+    local CIRCUIT_TYPE=$2
+    local OUTPUT_DIR=$3
+    local START_TIME=$(date +%s)
+
+    echo -e "${BLUE}Compiling circuit: $CIRCUIT_NAME${NC}"
+    
+    # Create output directory
+    mkdir -p ${OUTPUT_DIR}/${CIRCUIT_NAME}/
+    
+    # Set circuit path based on CIRCUIT_TYPE
+    local CIRCUIT_PATH
+    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] || [ "$CIRCUIT_TYPE" = "credential" ] ; then
+        CIRCUIT_PATH="${CURR_DIR}/circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
     else
-        echo $(date +%s)
+        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
     fi
+    
+    local circuit_graph_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_graph.wcd"
+	local witness_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.wtns"
+	local proof_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_proof.json"
+	local public_signals_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_public.json"
+	local r1cs_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs"
+
+    cd circom-witnesscalc
+    time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" -l ${CURR_DIR}/node_modules -l ${CURR_DIR}/node_modules/@openpassport -l ${CURR_DIR}/node_modules/circomlib/circuits
 }
 
 build_circuit() {
@@ -53,9 +71,9 @@ build_circuit() {
     # Compile circuit
     circom ${CIRCUIT_PATH} \
         -l node_modules \
-        -l ./node_modules/@zk-kit/binary-merkle-root.circom/src \
+        -l ./node_modules/@openpassport \
         -l ./node_modules/circomlib/circuits \
-        --r1cs --O1 --wasm -c \
+        --r1cs --wasm -c \
         --output ${OUTPUT_DIR}/${CIRCUIT_NAME}/
 
     echo -e "${BLUE}Copying package files${NC}"
@@ -132,7 +150,8 @@ build_circuit() {
     echo -e "${BLUE}Size of ${CIRCUIT_NAME}_final.zkey: $(wc -c < ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey) bytes${NC}"
 }
 
-build_circuits() {
+
+build_circuit_graphs() {
     local CIRCUITS=("$@")
     local CIRCUIT_TYPE="$1"
     local OUTPUT_DIR="$2"
@@ -144,12 +163,9 @@ build_circuits() {
     for circuit in "${CIRCUITS[@]}"; do
         IFS=':' read -r CIRCUIT_NAME POWEROFTAU BUILD_FLAG <<< "$circuit"
         if [ "$BUILD_FLAG" = "true" ]; then
-            # Download ptau file
-            IFS=':' read -r _ POWEROFTAU _ <<< "$circuit"
-            download_ptau $POWEROFTAU
             # Build circuit
-            echo -e "${BLUE}Building circuit $CIRCUIT_NAME${NC}"
-            build_circuit "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$POWEROFTAU" "$OUTPUT_DIR" "$PACKAGE_DIR"
+            echo -e "${BLUE}Building circuit graph $CIRCUIT_NAME${NC}"
+            build_circuit_graph "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$OUTPUT_DIR"
         else
             echo -e "${GRAY}Skipping build for $CIRCUIT_NAME${NC}"
         fi
@@ -157,3 +173,6 @@ build_circuits() {
 
     echo -e "${GREEN}Total completed in $(($(date +%s) - TOTAL_START_TIME)) seconds${NC}"
 }
+
+build_circuits "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 
+build_circuit_graphs "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 

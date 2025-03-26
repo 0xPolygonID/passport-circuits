@@ -1,25 +1,37 @@
 import dotenv from 'dotenv';
-import { describe } from 'mocha';
-import { assert } from 'chai';
+import { expect } from 'chai';
+import fs from 'fs';
+import { genMockPassportData } from '../../../utils/passports/genMockPassportData';
+import { getCircuitNameFromPassportData } from '../../../utils/circuits/circuitsName';
+import * as snarkjs from 'snarkjs';
+import { exec } from 'child_process';
+import { fullHashAlgs, hashAlgs } from './test_cases';
+import { formatMrz } from '../../../utils/passports/format';
 import { newMemEmptyTrie } from 'circomlibjs';
-import { genMockPassportData } from '../../utils/passports/genMockPassportData';
-import { formatMrz } from '../../utils/passports/format';
-import { hashAlgs, fullHashAlgs } from './test_cases';
-import { wasm as wasm_tester } from 'circom_tester';
-import { Poseidon } from '@iden3/js-crypto';
-
 dotenv.config();
 
-const path = require('path');
 const testSuite = process.env.FULL_TEST_SUITE === 'true' ? fullHashAlgs : hashAlgs;
 
-// Define a type for the circuit
-interface Circuit {
-  calculateWitness: (inputs: any, witness?: boolean) => Promise<bigint[]>;
-  checkConstraints: (witness: bigint[]) => Promise<void>;
-  release: () => void;
-}
+const execute = async (command: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (!!stdout) {
+        console.log(stdout);
+      }
 
+      if (!!stderr) {
+        console.error(stderr);
+      }
+
+      if (!!error) {
+        reject(error.message);
+        return;
+      }
+
+      resolve(stdout);
+    });
+  });
+};
 
 async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize: number) {
   const mrzByteArray = formatMrz(mrz);
@@ -87,7 +99,6 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     while (res.siblings.length < treeLevels) res.siblings.push(0);
     siblings.push(res.siblings);
   }
-
   return {
     dg1: [...mrzByteArray],
     lastNameSize: lastNameSize,
@@ -109,185 +120,78 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
   };
 }
 
-testSuite.forEach(({ shaAlg, shaLength }) => {
-  describe(`credential_${shaAlg}.circom`, function () {
-    this.timeout(0);
-
-    let circuit;
-    before(async () => {
-      circuit = await wasm_tester(
-        path.join(__dirname, `../../circuits/credential/instances/credential_${shaAlg}.circom`),
-        {
-          include: ['node_modules'],
-        }
-      );
-    });
-    after(async () => {
-      circuit.release();
-    });
-
-    it(`Passport is valid and hashAlg is ${shaAlg}`, async function () {
-      const lastName = 'KUZNETSOV';
-      const firstName = 'VALERIY';
-      const passportData = genMockPassportData(
-        shaAlg,
-        shaAlg,
-        'rsa_sha1_65537_2048', // not important for this test
-        'UKR',
-        '960309',
-        '350803',
-        'AC1234567',
-        'KUZNETSOV',
-        'VALERIY'
-      );
-      const inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length);
-
-      const w = await circuit.calculateWitness(inputs, true);
-      await circuit.checkConstraints(w);
-      // Document code hash (output 1)
-      assert(
-        w[1] === 12343105779965610540047025345938704312955329035594806470260411576419571786879n
-      );
-
-      // Issuing State or organization hash (output 2)
-      assert(
-        w[2] === 14193146200435563417722817655626671239476419932450502386457224894805250323461n
-      );
-
-      // Last name hash (output 3)
-      assert(
-        w[3] === 16124395655319932562687594154333620461512120815155591900166934828565073655159n
-      );
-
-      // First name hash (output 4)
-      assert(w[4] === 779590574833975594150553032190316165100034337907701477766077549696170325957n);
-
-      // Document number hash (output 5)
-      assert(
-        w[5] === 3286800018689036072036595048281161368331306321215602580795106602635276597696n
-      );
-
-      // Nationality hash (output 6)
-      assert(
-        w[6] === 14193146200435563417722817655626671239476419932450502386457224894805250323461n
-      );
-
-      // Date of Birth hash (output 7)
-      assert(w[7] === 19960309n);
-
-      // Sex hash (output 8)
-      assert(
-        w[8] === 4366613503740245542741816499068547859478657796760861141829344679607332353738n
-      );
-
-      // Date of expiry hash (output 9)
-      assert(w[9] === 20350803n);
-
-      // Hash Index
-      assert(
-        w[10] === 6632588972401112452204984525927531300077823504377975214483036229186777300654n
-      );
-
-      // Hash Value
-      assert(
-        w[11] === 20661880459224054680311568334655353588113926319608771155576598304028828385849n
-      );
-
-      const linkId = Poseidon.spongeHashX(
-        [Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)), BigInt(inputs.linkNonce)],
-        2
-      );
-      assert(w[12] === linkId);
-    });
-    /*
-  it(`Double last name`, async function() {
-    const {mrz, surnameSize, givenNamesSize} = generateMRZ(
-      "P",
-      "UKR",
-      "KUZNETSOV",
-      "VALERIY",
-      "AC1234567",
-      "UKR",
-      "960309",
-      "M",
-      "350803",
-    );
-    const inputs = await prepareTestData(docs, 11, 8);
-    const w = await circuit.calculateWitness(inputs, true);
-    await circuit.checkConstraints(w);
-    // Document code hash (output 1)
-    assert(w[1] === 12343105779965610540047025345938704312955329035594806470260411576419571786879n);
-
-    // Issuing State or organization hash (output 2)
-    assert(w[2] === 14193146200435563417722817655626671239476419932450502386457224894805250323461n);
-
-    // Last name hash (output 3)
-    assert(w[3] === 16684418381729930583844995012712504418990732401801825107387099797112025696324n);
-
-    // First name hash (output 4)
-    assert(w[4] === 7882444430312531813986531690355256034187461560449276183886474511877560234822n);
-
-    // Document number hash (output 5)
-    assert(w[5] === 13365184592845315309100297120259965838903705444844448460767566282483182375642n);
-
-    // Nationality hash (output 6)
-    assert(w[6] === 14193146200435563417722817655626671239476419932450502386457224894805250323461n);
-
-    // Date of Birth hash (output 7)
-    assert(w[7] === 19980309n);
-
-    // Sex hash (output 8)
-    assert(w[8] === 4366613503740245542741816499068547859478657796760861141829344679607332353738n);
-
-    // Date of expiry hash (output 9)
-    assert(w[9] === 20310803n);
-  });
-  */
-  });
-});
-
-describe('credential_sha256.circom', function () {
-  this.timeout(0);
-  let circuit: Circuit;
-  before(async () => {
-    circuit = await wasm_tester(
-      path.join(__dirname, '../../circuits/credential/instances/credential_sha256.circom'),
-      {
-        include: ['node_modules'],
-      }
-    );
-  });
-  after(async () => {
-    circuit.release();
-  });
-
-  it(`Passport is expired`, async function () {
-    const lastName = 'KUZNETSOV';
-    const firstName = 'VALERIY';
+testSuite.forEach(
+  ({ shaAlg }) => {
     const passportData = genMockPassportData(
-      'sha256',
-      'sha256',
-      'rsa_sha1_65537_2048',
+      shaAlg,
+      shaAlg,
+      'rsa_sha1_65537_2048', // not important for this test
       'UKR',
       '960309',
-      '240803',
+      '350803',
       'AC1234567',
       'KUZNETSOV',
       'VALERIY'
     );
-    const inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length);
-    try {
-      await circuit.calculateWitness(inputs, true);
-      assert.fail('Expected an Assertion Error but no error was thrown');
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        assert(
-          error.message.includes('Assert Failed'),
-          `Expected Assertion Error but got: ${error.message}`
+    describe(`Credential - ${shaAlg.toUpperCase()}`, function () {
+      let witness_calculator;
+      let circuitName;
+      let circuit_graph_path;
+      let input_path;
+      let witnes_path;
+      let zkey_path;
+      let v_key;
+      const lastName = 'KUZNETSOV';
+      const firstName = 'VALERIY';
+      let inputs;
+      this.timeout(0); // Disable timeout
+      before(async () => {
+        inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length);
+        circuitName = `credential_${shaAlg}`;
+        witness_calculator = `./circom-witnesscalc/target/release/calc-witness`;
+        circuit_graph_path = `./build/credential/${circuitName}/${circuitName}_graph.wcd`;
+        input_path = `./build/credential/${circuitName}/input.json`;
+        witnes_path = `./build/credential/${circuitName}/output.wtns`;
+        zkey_path = `./build/credential/${circuitName}/${circuitName}_final.zkey`;
+        v_key = `./build/credential/${circuitName}/${circuitName}_vkey.json`;
+      });
+
+      it('should find the witness calculator', async function () {
+        expect(fs.existsSync(witness_calculator)).to.be.true;
+      });
+
+      it('should compute a valid witness, generate proof and verify it', async () => {
+        // 1. Generate input.json
+        fs.writeFileSync(
+          input_path,
+          JSON.stringify(inputs, null, 2)
         );
-      } else {
-        assert.fail('Expected an Error object but got a different type');
-      }
-    }
-  });
-});
+
+        // 2. Generate witness
+        try {
+          const witnesCalcCmd = `time ${witness_calculator} "${circuit_graph_path}" "${input_path}" "${witnes_path}"`;
+          await execute(
+           witnesCalcCmd
+          );
+        } catch (error) {
+          console.log('error!!!', error);
+          // if the promise rejects, we land here
+          throw error;
+        }
+        // 3. Generate proof
+        const { proof, publicSignals } = await snarkjs.groth16.prove(
+          zkey_path,
+          witnes_path
+        );
+
+        const vkey = JSON.parse(
+          fs.readFileSync(v_key).toString()
+        );
+
+        // 4. Verify proof
+        const verification = await snarkjs.groth16.verify(vkey, publicSignals, proof);
+        expect(verification).to.be.true;
+      });
+    });
+  }
+);
