@@ -155,14 +155,6 @@ export const fullSigAlgs = [
   // secp
   {
     dgHashAlgo: 'sha256',
-    eContentHashAlgo: 'sha224',
-    hashFunction: 'sha224',
-    sigAlg: 'ecdsa',
-    domainParameter: 'secp224r1',
-    keyLength: '224',
-  },
-  {
-    dgHashAlgo: 'sha256',
     eContentHashAlgo: 'sha256',
     hashFunction: 'sha256',
     sigAlg: 'ecdsa',

@@ -13,9 +13,10 @@
     "package-all": "bash scripts/package/package_dsc_circuits.sh && bash scripts/package/package_signature_circuits.sh",
     "package-dsc": "bash scripts/package/package_dsc_circuits.sh",
     "package-signature": "bash scripts/package/package_signature_circuits.sh",
-    "integration-dsc": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/dsc/dsc.integration.ts' --exit",
-    "integration-signature": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/signature/signature.integration.ts' --exit",
-    "integration-credential": "npx ts-mocha --max-old-space-size=51200 'scripts/integration/credential/credential.integration.ts' --exit",
+    "integration-dsc": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/dsc/dsc.integration.ts' --exit",
+    "integration-signature": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/signature/signature.integration.ts' --exit",
+    "integration-credential": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/credential/credential.integration.ts' --exit",    "s3-bucket-dsc": "bash scripts/s3-bucket/files_dsc_circuits.sh",
+    "s3-bucket-signature": "bash scripts/s3-bucket/files_signature_circuits.sh",
     "generate-credential-circuits": "bash scripts/build/credential_circuit_setup_instances.bash"
   },
   "keywords": [],

@@ -143,6 +143,7 @@ export function generateCircuitInputsSignature(
     siblings: siblings,
     csca_tree_leaf: csca_tree_leaf,
     secret: secret,
+    linkNonce: 1,
   };
 
   return Object.entries(inputs)

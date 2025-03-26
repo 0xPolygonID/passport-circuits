@@ -11,6 +11,7 @@ include "../utils/crypto/bitify/bytes.circom";
 include "@zk-kit/binary-merkle-root.circom/src/binary-merkle-root.circom";
 include "../utils/passport/checkPubkeysEqual.circom";
 include "../utils/passport/checkPubkeyPosition.circom";
+include "../utils/iden3/linkId.circom";
 
 /// @title SIGNATURE
 /// @notice Main circuit — verifies the integrity of the passport data, the signature, and generates commitment and nullifier
@@ -90,8 +91,14 @@ template SIGNATURE(
     signal input siblings[nLevels];
 
     signal input csca_tree_leaf;
-    
+
     signal input secret;
+    
+    signal input linkNonce;
+
+    signal output nullifier;
+    signal output commitment;
+    signal output linkId;
 
     // assert only bytes are used in raw_dsc
     AssertBytes(MAX_DSC_LENGTH)(raw_dsc);
@@ -167,17 +174,18 @@ template SIGNATURE(
     passportVerifier.pubKey_dsc <== pubKey_dsc;
     passportVerifier.signature_passport <== signature_passport;
 
-    signal output nullifier <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
+    nullifier <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
 
     // generate commitment
     // signal dg1_packed_hash <== PackBytesAndPoseidon(93)(dg1); [dg1_removed]
     signal eContent_shaBytes_packed_hash <== PackBytesAndPoseidon(ECONTENT_HASH_ALGO_BYTES)(passportVerifier.eContentShaBytes);
     
-    signal output commitment <== Poseidon(5)([
+    commitment <== Poseidon(5)([
         secret,
         attestation_id,
         dg1_packed_hash,
         eContent_shaBytes_packed_hash,
         dsc_tree_leaf
     ]);
+    linkId <== LinkID()(dg1_packed_hash, linkNonce);
 }

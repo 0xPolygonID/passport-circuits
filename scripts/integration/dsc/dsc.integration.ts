@@ -69,30 +69,55 @@ testSuite.forEach(({ sigAlg, hashFunction, domainParameter, keyLength }) => {
         `./package/dsc/${circuitName}/bin/input.json`,
         JSON.stringify(inputs, null, 2)
       );
-
+      let start = performance.now();
       // 2. Generate witness
       try {
         await execute(
           `./package/dsc/${circuitName}/bin/${circuitName} ./package/dsc/${circuitName}/bin/input.json ./package/dsc/${circuitName}/bin/output.wtns`
-        );
+        );        
       } catch (error) {
         console.log('error!!!', error);
         // if the promise rejects, we land here
       }
+      let stop = performance.now();
+      let timeElapsed = stop - start;
+      console.log('Time witness generation: ', timeElapsed);
 
-      // 3. Generate proof
-      const { proof, publicSignals } = await snarkjs.groth16.prove(
+      start = performance.now();
+      // 3. Generate proof (snarkjs)
+      let { proof, publicSignals } = await snarkjs.groth16.prove(
         `./build/dsc/${circuitName}/${circuitName}_final.zkey`,
         `./package/dsc/${circuitName}/bin/output.wtns`
       );
+      stop = performance.now();
+      timeElapsed = stop - start;
+      console.log('Time proof generation (snarkjs): ', timeElapsed);
+
+      start = performance.now();
+      // 4. Generate proof (rapidsnark)
+      try {
+        await execute(
+          `./rapidsnark/prover ./build/dsc/${circuitName}/${circuitName}_final.zkey ./package/dsc/${circuitName}/bin/output.wtns ./package/dsc/${circuitName}/bin/proof.json ./package/dsc/${circuitName}/bin/public.json`
+        );        
+      } catch (error) {
+        console.log('error!!!', error);
+        // if the promise rejects, we land here
+      }
+      stop = performance.now();
+      timeElapsed = stop - start;
+      console.log('Time proof generation (rapidsnark): ', timeElapsed);
 
       const vkey = JSON.parse(
         fs.readFileSync(`./build/dsc/${circuitName}/${circuitName}_vkey.json`).toString()
       );
 
-      // 4. Verify proof
+      start = performance.now();
+      // 5. Verify proof
       const verification = await snarkjs.groth16.verify(vkey, publicSignals, proof);
       expect(verification).to.be.true;
+      stop = performance.now();
+      timeElapsed = stop - start;
+      console.log('Time verification: ', timeElapsed);
     });
   });
 });
