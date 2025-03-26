@@ -55,12 +55,33 @@ package_circuit() {
         echo -e "${YELLOW}${CIRCUIT_NAME}.dat file already copied${NC}"
     fi
 
+    case "$(uname)" in
+    'Darwin')
+        OS='Mac'
+        ;;
+    'Linux')
+        OS='Linux'
+        ;;
+    *)
+        echo "Unsupported platform: $(uname -a)"
+        exit 1
+        ;;
+    esac
+
     cd witnesscalc-template
     rm -rf build_witnesscalc
-    ./build_gmp.sh host
-    mkdir build_witnesscalc && cd build_witnesscalc
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../package/${CIRCUIT_TYPE}/${CIRCUIT_NAME} -DCIRCUIT_FILE=../../${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
-    make -j 8 && make install
+    echo -e "${BLUE}Compiling package for OS: ${OS}"
+    if [ "$OS" = 'Mac' ]; then
+        ./build_gmp.sh macos_arm64
+        mkdir build_witnesscalc && cd build_witnesscalc
+        cmake .. -DTARGET_PLATFORM=macos_arm64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../package/${CIRCUIT_TYPE}/${CIRCUIT_NAME} -DCIRCUIT_FILE=../../${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
+        make -j 8 && make install
+    elif [ "$OS" = 'Linux' ]; then
+        ./build_gmp.sh host
+        mkdir build_witnesscalc && cd build_witnesscalc
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../../package/${CIRCUIT_TYPE}/${CIRCUIT_NAME} -DCIRCUIT_FILE=../../${PACKAGE_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.cpp
+        make -j 8 && make install
+    fi
     cd ../..
 }
 
