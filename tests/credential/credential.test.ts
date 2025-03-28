@@ -51,7 +51,8 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     '8713837106709436881047310678745516714551061952618778897121563913918335939585', 0, // issuanceDate.id
     '5940025296598751562822259677636111513267244048295724788691376971035167813215', 0, // issuer.id
     '9656117739891539357123771284552289598577388060024608839018723118201732735699', 0, // credentialSubject.nationalities
-    '15699466668150257351625206938060640380549592812731019574696943258403707765146', 0, // credentialSubject.nationalities
+    '15699466668150257351625206938060640380549592812731019574696943258403707765146', 0, // credentialSubject.nationalities,
+    '365013346198065955870605004526862151583086727529438553070023764725760021197', 0, // credentialSubject.customFields.string3,
   ];
   for (let i = 0; i < template.length; i += 2) {
     const key = tree.F.e(template[i]);
@@ -76,6 +77,7 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     '5940025296598751562822259677636111513267244048295724788691376971035167813215', '12146166192964646439780403715116050536535442384123009131510511003232108502337', // issuer.id
     '9656117739891539357123771284552289598577388060024608839018723118201732735699', '14193146200435563417722817655626671239476419932450502386457224894805250323461', // credentialSubject.nationalities
     '15699466668150257351625206938060640380549592812731019574696943258403707765146', '14193146200435563417722817655626671239476419932450502386457224894805250323461', // credentialSubject.nationalities
+    '365013346198065955870605004526862151583086727529438553070023764725760021197', '9966332195319259765266445177016037537993267892018038146457505167974530030333', // credentialSubject.customFields.string3
   ];
   const siblings = [[]];
   for (let i = 0; i < updateTemplate.length; i += 2) {
@@ -90,6 +92,7 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
 
   return {
     dg1: [...mrzByteArray],
+    dg2Hash: [... new TextEncoder().encode('88328f6e5066315192a573911a6f33081da50fd51397af13edb3d7badbb59f98')],
     lastNameSize: lastNameSize,
     firstNameSize: firstNameSize,
     currentDate: 250401,
@@ -112,6 +115,8 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
 testSuite.forEach(({ shaAlg, shaLength }) => {
   describe(`credential_${shaAlg}.circom`, function () {
     this.timeout(0);
+
+    assert(process.env.FULL_TEST_SUITE === 'false', 'FULL_TEST_SUITE not supposed for all shaAlgs');
 
     let circuit;
     before(async () => {
@@ -185,19 +190,28 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
 
       // Hash Index
       assert(
-        w[10] === 6632588972401112452204984525927531300077823504377975214483036229186777300654n
+        w[10] === 14352261996435770379836142331820391685987025053895255789663854094846898756543n,
+        `Hash Index: ${w[10]}`
       );
 
       // Hash Value
       assert(
-        w[11] === 20661880459224054680311568334655353588113926319608771155576598304028828385849n
+        w[11] === 20661880459224054680311568334655353588113926319608771155576598304028828385849n,
+        `Hash Value: ${w[11]}`
       );
 
       const linkId = Poseidon.spongeHashX(
-        [Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)), BigInt(inputs.linkNonce)],
-        2
+        [
+          Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
+          Poseidon.hashBytes(new Uint8Array(inputs.dg2Hash)),
+          BigInt(inputs.linkNonce),
+        ],
+        3
       );
       assert(w[12] === linkId);
+
+      // Compare template root
+      assert(w[15] === 13877458496571214307545901589289361288373545228075343679211572855423418561765n);
     });
     /*
   it(`Double last name`, async function() {
