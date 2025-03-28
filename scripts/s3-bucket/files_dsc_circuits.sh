@@ -5,6 +5,7 @@ source "scripts/s3-bucket/common.sh"
 # Circuit-specific configurations
 CIRCUIT_TYPE="dsc"
 S3_DIR="s3-bucket"
+PACKAGE_DIR="package/${CIRCUIT_TYPE}"
 BUILD_DIR="build/${CIRCUIT_TYPE}"
 
 # Define circuits and their configurations
@@ -33,4 +34,4 @@ CIRCUITS=(
     "dsc_sha512_rsapss_65537_64_4096"
 )
 
-files_circuits "$CIRCUIT_TYPE" "$S3_DIR" "$BUILD_DIR" "${CIRCUITS[@]}" 
+files_circuits "$CIRCUIT_TYPE" "$S3_DIR" "$BUILD_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 
