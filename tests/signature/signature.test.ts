@@ -8,7 +8,11 @@ import { genMockPassportData } from '../../utils/passports/genMockPassportData';
 import { SignatureAlgorithm } from '../../utils/types';
 import { getCircuitNameFromPassportData } from '../../utils/circuits/circuitsName';
 import { sigAlgs, fullSigAlgs } from './test_cases';
-import { generateCommitment, generateNullifier } from '../../utils/passports/passport';
+import {
+  generateCommitment,
+  generateLinkId,
+  generateNullifier,
+} from '../../utils/passports/passport';
 import { poseidon6 } from 'poseidon-lite';
 import { PASSPORT_ATTESTATION_ID } from '../../utils/constants/constants';
 import { parseCertificateSimple } from '../../utils/certificate_parsing/parseCertificateSimple';
@@ -83,6 +87,12 @@ testSuite.forEach(
         const commitment = (await circuit.getOutput(w, ['commitment'])).commitment;
         console.log('\x1b[34m%s\x1b[0m', 'circom commitment', commitment);
         expect(commitment).to.be.equal(commitment_js);
+
+        const linkId_js = generateLinkId(passportData, inputs.linkNonce[0]);
+        console.log('\x1b[35m%s\x1b[0m', 'js: linkId:', linkId_js);
+        const linkId = (await circuit.getOutput(w, ['linkId'])).linkId;
+        console.log('\x1b[34m%s\x1b[0m', 'circom linkId', linkId);
+        expect(linkId).to.be.equal(linkId_js);
       });
 
       it('should fail if dsc_pubKey_actual_size is lower than the minimum key length', async () => {

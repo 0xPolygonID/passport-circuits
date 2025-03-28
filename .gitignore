@@ -9,3 +9,6 @@ package/**/**/bin/
 **/*.a
 **/*.so
 **/*.h
+s3-bucket/
+!scripts/s3-bucket/
+rapidsnark/

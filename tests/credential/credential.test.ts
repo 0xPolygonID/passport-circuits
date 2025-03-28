@@ -107,8 +107,8 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     issuanceDate: "1742578132000000000",
 
     linkNonce: 1,
-    templateRoot: templateRoot,
-    siblings: siblings,
+    templateRoot: templateRoot.toString(),
+    siblings: siblings.map(arr => arr.map((x: BigInt) => x.toString())),
   };
 }
 
