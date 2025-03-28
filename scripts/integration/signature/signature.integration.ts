@@ -7,9 +7,9 @@ import { genMockPassportData } from '../../../utils/passports/genMockPassportDat
 import { SignatureAlgorithm } from '../../../utils/types';
 import { getCircuitNameFromPassportData } from '../../../utils/circuits/circuitsName';
 import serialized_dsc_tree from '../../../utils/pubkeys/serialized_dsc_tree.json';
-import { poseidon6 } from 'poseidon-lite';
 import * as snarkjs from 'snarkjs';
 import { exec } from 'child_process';
+import { Poseidon } from '@iden3/js-crypto';
 dotenv.config();
 
 const testSuite = process.env.FULL_TEST_SUITE === 'true' ? fullSigAlgs : sigAlgs;
@@ -53,7 +53,10 @@ testSuite.forEach(
       let witness_calculator;
       let circuitName;
 
-      const secret = poseidon6('SECRET'.split('').map((x) => BigInt(x.charCodeAt(0)))).toString();
+      const secret = Poseidon.spongeHashX(
+        'SECRET'.split('').map((x) => BigInt(x.charCodeAt(0))),
+        6
+      ).toString();
 
       const inputs = generateCircuitInputsSignature(
         secret,
@@ -89,7 +92,7 @@ testSuite.forEach(
         let stop = performance.now();
         let timeElapsed = stop - start;
         console.log('Time witness generation: ', timeElapsed);
-  
+
         start = performance.now();
         // 3. Generate proof
         const { proof, publicSignals } = await snarkjs.groth16.prove(
@@ -99,13 +102,13 @@ testSuite.forEach(
         stop = performance.now();
         timeElapsed = stop - start;
         console.log('Time proof generation (snarkjs): ', timeElapsed);
-  
+
         start = performance.now();
         // 4. Generate proof (rapidsnark)
         try {
           await execute(
             `./rapidsnark/prover ./build/signature/${circuitName}/${circuitName}_final.zkey ./package/signature/${circuitName}/bin/output.wtns ./package/signature/${circuitName}/bin/proof.json ./package/signature/${circuitName}/bin/public.json`
-          );        
+          );
         } catch (error) {
           console.log('error!!!', error);
           // if the promise rejects, we land here
@@ -113,7 +116,7 @@ testSuite.forEach(
         stop = performance.now();
         timeElapsed = stop - start;
         console.log('Time proof generation (rapidsnark): ', timeElapsed);
-  
+
         const vkey = JSON.parse(
           fs.readFileSync(`./build/signature/${circuitName}/${circuitName}_vkey.json`).toString()
         );
@@ -124,7 +127,7 @@ testSuite.forEach(
         expect(verification).to.be.true;
         stop = performance.now();
         timeElapsed = stop - start;
-        console.log('Time verification: ', timeElapsed);  
+        console.log('Time verification: ', timeElapsed);
       });
     });
   }

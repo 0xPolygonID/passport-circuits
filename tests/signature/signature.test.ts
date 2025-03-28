@@ -13,10 +13,10 @@ import {
   generateLinkId,
   generateNullifier,
 } from '../../utils/passports/passport';
-import { poseidon6 } from 'poseidon-lite';
 import { PASSPORT_ATTESTATION_ID } from '../../utils/constants/constants';
 import { parseCertificateSimple } from '../../utils/certificate_parsing/parseCertificateSimple';
 import serialized_dsc_tree from '../../utils/pubkeys/serialized_dsc_tree.json';
+import { Poseidon } from '@iden3/js-crypto';
 dotenv.config();
 
 const testSuite = process.env.FULL_TEST_SUITE === 'true' ? fullSigAlgs : sigAlgs;
@@ -40,7 +40,10 @@ testSuite.forEach(
         '300101'
       );
 
-      const secret = poseidon6('SECRET'.split('').map((x) => BigInt(x.charCodeAt(0)))).toString();
+      const secret = Poseidon.spongeHashX(
+        'SECRET'.split('').map((x) => BigInt(x.charCodeAt(0))),
+        6
+      ).toString();
 
       const inputs = generateCircuitInputsSignature(
         secret,

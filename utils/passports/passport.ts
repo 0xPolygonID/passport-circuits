@@ -1,4 +1,3 @@
-import { poseidon2, poseidon5 } from 'poseidon-lite';
 import { hashAlgos, MAX_PUBKEY_DSC_BYTES } from '../constants/constants';
 import {
   CertificateData,
@@ -30,10 +29,10 @@ import {
   k_dsc_3072,
 } from '../constants/constants';
 import { splitToWords } from '../bytes';
-import { formatMrz } from './format';
 import { findStartIndex, findStartIndexEC } from '../csca';
 import { formatInput } from '../circuits/generateInputs';
 import { getLeafDscTree } from '../trees';
+import { Poseidon } from '@iden3/js-crypto';
 
 /// @dev will bruteforce passport and dsc signature
 export function initPassportDataParsing(passportData: PassportData) {
@@ -55,7 +54,7 @@ export function generateCommitment(
 ) {
   const passportMetadata = passportData.passportMetadata;
 
-  const dg1_packed_hash = packBytesAndPoseidon(formatMrz(passportData.mrz));
+  const dg1_packed_hash = Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)).toString(); //packBytesAndPoseidon(formatMrz(passportData.mrz));
 
   const eContent_shaBytes = hash(
     passportMetadata.eContentHashFunction,
@@ -68,19 +67,27 @@ export function generateCommitment(
   );
 
   const dsc_hash = getLeafDscTree(passportData.dsc_parsed, passportData.csca_parsed);
-
-  return poseidon5([
-    secret,
-    attestation_id,
-    dg1_packed_hash,
-    eContent_packed_hash,
-    dsc_hash,
-  ]).toString();
+  return Poseidon.spongeHashX(
+    [
+      BigInt(secret),
+      BigInt(attestation_id),
+      BigInt(dg1_packed_hash),
+      BigInt(eContent_packed_hash),
+      BigInt(dsc_hash),
+    ],
+    5
+  ).toString();
 }
 
 export function generateLinkId(passportData: PassportData, LinkNonce: string) {
-  const dg1_packed_hash = packBytesAndPoseidon(formatMrz(passportData.mrz));
-  return poseidon2([dg1_packed_hash, LinkNonce]).toString();
+  return Poseidon.spongeHashX(
+    [
+      Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
+      Poseidon.hashBytes(new Uint8Array(passportData.dg2Hash)),
+      BigInt(LinkNonce),
+    ],
+    3
+  ).toString();
 }
 
 export function generateNullifier(passportData: PassportData) {
