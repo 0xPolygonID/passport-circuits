@@ -44,6 +44,7 @@ build_circuit_graph() {
 	local r1cs_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs"
 
     cd circom-witnesscalc
+    cargo build --release
     time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" -l ${CURR_DIR}/node_modules -l ${CURR_DIR}/node_modules/@openpassport -l ${CURR_DIR}/node_modules/circomlib/circuits
 }
 
@@ -92,7 +93,7 @@ build_circuit() {
 
 
     echo -e "${BLUE}Building zkey${NC}"
-    NODE_OPTIONS="--max-old-space-size=40960" yarn snarkjs groth16 setup \
+    yarn snarkjs groth16 setup \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
         build/powersOfTau28_hez_final_${POWEROFTAU}.ptau \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey
