@@ -105,7 +105,7 @@ function messageMaxSize() {
 
 // Part of hashIndex. V0
 function v0() {
-  return 14477845612645806574444905890781353993111;
+  return 14586288774771787882356214884390414373502;
 }
 
 function DG1_TD3_SIZE_BITS() {
