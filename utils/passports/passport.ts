@@ -82,15 +82,15 @@ export function generateCommitment(
 export function generateLinkId(passportData: PassportData, LinkNonce: string) {
   return Poseidon.spongeHashX(
     [
-      Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
-      Poseidon.hashBytes(new Uint8Array(passportData.dg2Hash)),
+      BigInt(packBytesAndPoseidon(passportData.dg1Hash.map(byte => byte < 0 ? byte + 256 : byte))),
+      BigInt(packBytesAndPoseidon(passportData.dg2Hash.map(byte => byte < 0 ? byte + 256 : byte))),
       BigInt(LinkNonce),
     ],
     3
   ).toString();
 }
 
-export function generateNullifier(passportData: PassportData) {
+export function generateNullifier(passportData: PassportData, nullifierNonce: number) {
   const signedAttr_shaBytes = hash(
     passportData.passportMetadata.signedAttrHashFunction,
     Array.from(passportData.signedAttr),
@@ -99,7 +99,7 @@ export function generateNullifier(passportData: PassportData) {
   const signedAttr_packed_hash = packBytesAndPoseidon(
     (signedAttr_shaBytes as number[]).map((byte) => byte & 0xff)
   );
-  return signedAttr_packed_hash;
+  return Poseidon.spongeHashX([BigInt(signedAttr_packed_hash), BigInt(nullifierNonce)], 2).toString();
 }
 
 export function pad(hashFunction: (typeof hashAlgos)[number]) {

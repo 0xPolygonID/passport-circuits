@@ -77,9 +77,9 @@ export function generateCircuitInputsDSC(dscCertificate: string, serializedCscaT
 }
 
 export function generateCircuitInputsSignature(
-  secret: string,
   passportData: PassportData,
-  serializedDscTree: string
+  serializedDscTree: string,
+  nullifierNonce: number,
 ) {
   const { mrz, eContent, signedAttr } = passportData;
   const passportMetadata = passportData.passportMetadata;
@@ -124,8 +124,11 @@ export function generateCircuitInputsSignature(
     raw_dsc_actual_length: [BigInt(dscParsed.tbsBytes.length).toString()],
     dsc_pubKey_offset: startIndex,
     dsc_pubKey_actual_size: [BigInt(keyLength).toString()],
-    dg1_packed_hash: Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)).toString(),
-    dg2_packed_hash: Poseidon.hashBytes(new Uint8Array(passportData.dg2Hash)).toString(),
+    // Convert signed bytes to unsigned (0-255)
+    dg1_hash_bytes: passportData.dg1Hash.map(byte => byte < 0 ? byte + 256 : byte),
+    dg2_hash_bytes: passportData.dg2Hash.map(byte => byte < 0 ? byte + 256 : byte),
+    dg1_hash_offset: passportMetadata.dg1HashOffset,
+    dg2_hash_offset: passportMetadata.dg2HashOffset,
     eContent: eContentPadded,
     eContent_padded_length: eContentLen,
     signed_attr: signedAttrPadded,
@@ -138,8 +141,8 @@ export function generateCircuitInputsSignature(
     path: path,
     siblings: siblings,
     csca_tree_leaf: csca_tree_leaf,
-    secret: secret,
     linkNonce: 1,
+    nullifierNonce: nullifierNonce,
   };
 
   return Object.entries(inputs)

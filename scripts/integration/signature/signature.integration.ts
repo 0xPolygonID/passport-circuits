@@ -59,9 +59,9 @@ testSuite.forEach(
       ).toString();
 
       const inputs = generateCircuitInputsSignature(
-        secret,
         passportData,
-        serialized_dsc_tree as string
+        serialized_dsc_tree as string,
+        1,
       );
 
       before(async () => {

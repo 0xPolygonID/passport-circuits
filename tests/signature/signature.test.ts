@@ -9,7 +9,6 @@ import { SignatureAlgorithm } from '../../utils/types';
 import { getCircuitNameFromPassportData } from '../../utils/circuits/circuitsName';
 import { sigAlgs, fullSigAlgs } from './test_cases';
 import {
-  generateCommitment,
   generateLinkId,
   generateNullifier,
 } from '../../utils/passports/passport';
@@ -45,10 +44,11 @@ testSuite.forEach(
         6
       ).toString();
 
+      const nullifierNonce = 1;
       const inputs = generateCircuitInputsSignature(
-        secret,
         passportData,
-        serialized_dsc_tree as string
+        serialized_dsc_tree as string,
+        nullifierNonce,
       );
 
       before(async () => {
@@ -71,25 +71,15 @@ testSuite.forEach(
         expect(circuit).to.not.be.undefined;
       });
 
-      it.only('should calculate the witness with correct inputs, and have the right nullifier and commitment', async function () {
+      it.only('should calculate the witness with correct inputs, and have the right nullifier', async function () {
         const w = await circuit.calculateWitness(inputs);
         await circuit.checkConstraints(w);
 
-        const nullifier_js = generateNullifier(passportData);
+        const nullifier_js = generateNullifier(passportData, nullifierNonce);
         console.log('\x1b[35m%s\x1b[0m', 'js: nullifier:', nullifier_js);
         const nullifier = (await circuit.getOutput(w, ['nullifier'])).nullifier;
         console.log('\x1b[34m%s\x1b[0m', 'circom: nullifier', nullifier);
         expect(nullifier).to.be.equal(nullifier_js);
-
-        const commitment_js = generateCommitment(
-          secret.toString(),
-          PASSPORT_ATTESTATION_ID,
-          passportData
-        );
-        console.log('\x1b[35m%s\x1b[0m', 'js: commitment:', commitment_js);
-        const commitment = (await circuit.getOutput(w, ['commitment'])).commitment;
-        console.log('\x1b[34m%s\x1b[0m', 'circom commitment', commitment);
-        expect(commitment).to.be.equal(commitment_js);
 
         const linkId_js = generateLinkId(passportData, inputs.linkNonce[0]);
         console.log('\x1b[35m%s\x1b[0m', 'js: linkId:', linkId_js);
@@ -266,16 +256,13 @@ testSuite.forEach(
         const wValid = await circuit.calculateWitness(inputs);
         await circuit.checkConstraints(wValid);
         const nullifierValid = (await circuit.getOutput(wValid, ['nullifier'])).nullifier;
-        const commitmentValid = (await circuit.getOutput(wValid, ['commitment'])).commitment;
 
         const tamperedInputs = { ...inputs, secret: (BigInt(inputs.secret[0]) + 1n).toString() };
         const wTampered = await circuit.calculateWitness(tamperedInputs);
         await circuit.checkConstraints(wTampered);
         const nullifierTampered = (await circuit.getOutput(wTampered, ['nullifier'])).nullifier;
-        const commitmentTampered = (await circuit.getOutput(wTampered, ['commitment'])).commitment;
 
         expect(nullifierTampered).to.equal(nullifierValid);
-        expect(commitmentTampered).to.not.be.equal(commitmentValid);
       });
 
       if (sigAlg.startsWith('rsa') || sigAlg.startsWith('rsapss')) {
