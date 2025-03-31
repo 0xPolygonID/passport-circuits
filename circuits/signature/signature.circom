@@ -74,9 +74,8 @@ template SIGNATURE(
     signal input dsc_pubKey_offset;
     signal input dsc_pubKey_actual_size;
 
-    // signal input dg1[93];  [dg1_removed]
-    // signal input dg1_hash_offset; // [dg1_removed]
-    signal input dg1_packed_hash; // [dg1_removed] - adding the packed hash instead of dg1 and dg1_hash_offset
+    signal input dg1_packed_hash;
+    signal input dg2_packed_hash; 
     signal input eContent[MAX_ECONTENT_PADDED_LEN];
     signal input eContent_padded_length;
     signal input signed_attr[MAX_SIGNED_ATTR_PADDED_LEN];
@@ -187,5 +186,5 @@ template SIGNATURE(
         eContent_shaBytes_packed_hash,
         dsc_tree_leaf
     ]);
-    linkId <== LinkID()(dg1_packed_hash, linkNonce);
+    linkId <== LinkID()(dg1_packed_hash, dg2_packed_hash, linkNonce);
 }

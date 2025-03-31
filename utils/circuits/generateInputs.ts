@@ -3,32 +3,25 @@ import {
   MAX_PADDED_SIGNED_ATTR_LEN,
   max_dsc_bytes,
   max_csca_bytes,
-  COMMITMENT_TREE_DEPTH,
 } from '../constants/constants';
 import { PassportData } from '../types';
-import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
-import { getCountryLeaf, getNameDobLeaf, getPassportNumberAndNationalityLeaf, getLeafCscaTree, getLeafDscTree, getNameYobLeaf } from '../trees';
+import { getLeafCscaTree, getLeafDscTree } from '../trees';
 import { getCscaTreeInclusionProof, getDscTreeInclusionProof } from '../trees';
-import { SMT } from '@openpassport/zk-kit-smt';
 import {
   extractSignatureFromDSC,
   findStartPubKeyIndex,
   formatSignatureDSCCircuit,
-  generateCommitment,
   getCertificatePubKey,
   getPassportSignatureInfos,
   pad,
   padWithZeroes,
 } from '../passports/passport';
-import { hash, packBytesAndPoseidon } from '../hash';
 import { formatMrz } from '../passports/format';
 import { parseCertificateSimple } from '../certificate_parsing/parseCertificateSimple';
 import { parseDscCertificateData } from '../passports/passport_parsing/parseDscCertificateData';
+import { Poseidon } from '@iden3/js-crypto';
 
-export function generateCircuitInputsDSC(
-  dscCertificate: string,
-  serializedCscaTree: string[][],
-) {
+export function generateCircuitInputsDSC(dscCertificate: string, serializedCscaTree: string[][]) {
   const dscParsed = parseCertificateSimple(dscCertificate);
   const dscMetadata = parseDscCertificateData(dscParsed);
   const cscaParsed = parseCertificateSimple(dscMetadata.csca);
@@ -62,15 +55,18 @@ export function generateCircuitInputsDSC(
   );
 
   // Get start index of CSCA pubkey based on algorithm
-  const [startIndex, keyLength] = findStartPubKeyIndex(cscaParsed, cscaTbsBytesPadded, dscMetadata.cscaSignatureAlgorithm);
-
+  const [startIndex, keyLength] = findStartPubKeyIndex(
+    cscaParsed,
+    cscaTbsBytesPadded,
+    dscMetadata.cscaSignatureAlgorithm
+  );
 
   return {
-    raw_csca: cscaTbsBytesPadded.map(x => x.toString()),
+    raw_csca: cscaTbsBytesPadded.map((x) => x.toString()),
     raw_csca_actual_length: BigInt(cscaParsed.tbsBytes.length).toString(),
     csca_pubKey_offset: startIndex.toString(),
     csca_pubKey_actual_size: BigInt(keyLength).toString(),
-    raw_dsc: Array.from(dscTbsBytesPadded).map(x => x.toString()),
+    raw_dsc: Array.from(dscTbsBytesPadded).map((x) => x.toString()),
     raw_dsc_padded_length: BigInt(dscTbsBytesLen).toString(), // with the sha padding actually
     csca_pubKey: csca_pubKey_formatted,
     signature,
@@ -83,16 +79,13 @@ export function generateCircuitInputsDSC(
 export function generateCircuitInputsSignature(
   secret: string,
   passportData: PassportData,
-  serializedDscTree: string,
+  serializedDscTree: string
 ) {
   const { mrz, eContent, signedAttr } = passportData;
   const passportMetadata = passportData.passportMetadata;
   const dscParsed = passportData.dsc_parsed;
 
-  const [dscTbsBytesPadded,] = pad(dscParsed.hashAlgorithm)(
-    dscParsed.tbsBytes,
-    max_dsc_bytes
-  );
+  const [dscTbsBytesPadded] = pad(dscParsed.hashAlgorithm)(dscParsed.tbsBytes, max_dsc_bytes);
 
   const { pubKey, signature, signatureAlgorithmFullName } = getPassportSignatureInfos(passportData);
   const mrz_formatted = formatMrz(mrz);
@@ -115,21 +108,24 @@ export function generateCircuitInputsSignature(
     MAX_PADDED_SIGNED_ATTR_LEN[passportMetadata.eContentHashFunction]
   );
 
-  const dsc_leaf = getLeafDscTree(dscParsed, passportData.csca_parsed); // TODO: WRONG 
+  const dsc_leaf = getLeafDscTree(dscParsed, passportData.csca_parsed); // TODO: WRONG
   const [root, path, siblings, leaf_depth] = getDscTreeInclusionProof(dsc_leaf, serializedDscTree);
   const csca_tree_leaf = getLeafCscaTree(passportData.csca_parsed);
 
   // Get start index of DSC pubkey based on algorithm
-  const [startIndex, keyLength] = findStartPubKeyIndex(dscParsed, dscTbsBytesPadded, dscParsed.signatureAlgorithm);
+  const [startIndex, keyLength] = findStartPubKeyIndex(
+    dscParsed,
+    dscTbsBytesPadded,
+    dscParsed.signatureAlgorithm
+  );
 
   const inputs = {
-    raw_dsc: dscTbsBytesPadded.map(x => x.toString()),
+    raw_dsc: dscTbsBytesPadded.map((x) => x.toString()),
     raw_dsc_actual_length: [BigInt(dscParsed.tbsBytes.length).toString()],
     dsc_pubKey_offset: startIndex,
     dsc_pubKey_actual_size: [BigInt(keyLength).toString()],
-    dg1_packed_hash: packBytesAndPoseidon(mrz_formatted),
-    // dg1: mrz_formatted,
-    // dg1_hash_offset: passportMetadata.dg1HashOffset,
+    dg1_packed_hash: Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)).toString(),
+    dg2_packed_hash: Poseidon.hashBytes(new Uint8Array(passportData.dg2Hash)).toString(),
     eContent: eContentPadded,
     eContent_padded_length: eContentLen,
     signed_attr: signedAttrPadded,
@@ -152,7 +148,6 @@ export function generateCircuitInputsSignature(
     }))
     .reduce((acc, curr) => ({ ...acc, ...curr }), {});
 }
-
 
 export function formatInput(input: any) {
   if (Array.isArray(input)) {
