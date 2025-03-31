@@ -39,11 +39,6 @@ testSuite.forEach(
         '300101'
       );
 
-      const secret = Poseidon.spongeHashX(
-        'SECRET'.split('').map((x) => BigInt(x.charCodeAt(0))),
-        6
-      ).toString();
-
       const nullifierNonce = 1;
       const inputs = generateCircuitInputsSignature(
         passportData,

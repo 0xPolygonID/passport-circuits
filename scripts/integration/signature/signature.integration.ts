@@ -53,11 +53,6 @@ testSuite.forEach(
       let witness_calculator;
       let circuitName;
 
-      const secret = Poseidon.spongeHashX(
-        'SECRET'.split('').map((x) => BigInt(x.charCodeAt(0))),
-        6
-      ).toString();
-
       const inputs = generateCircuitInputsSignature(
         passportData,
         serialized_dsc_tree as string,
