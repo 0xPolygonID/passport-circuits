@@ -185,11 +185,7 @@ template SIGNATURE(
     nullifier <== Poseidon(2)([nullifierIntermediate, nullifierNonce]);
 
     signal dg1PackedHash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES)(dg1_hash_bytes);
-
-    component dg2HexComp = DgHashToHex(DG_HASH_ALGO_BYTES);
-    dg2HexComp.dg2_hash_bytes <== dg2_hash_bytes;
-    signal dg2Hex[DG_HASH_ALGO_BYTES * 2] <== dg2HexComp.hex_bytes;
-
+    signal dg2Hex[DG_HASH_ALGO_BYTES*2] <== DgHashToHex(DG_HASH_ALGO_BYTES)(dg2_hash_bytes);
     signal poseidonDg2Hash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES * 2)(dg2Hex);
     linkId <== LinkID()(dg1PackedHash, poseidonDg2Hash, linkNonce);
 }
