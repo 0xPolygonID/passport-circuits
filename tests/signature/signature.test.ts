@@ -8,10 +8,7 @@ import { genMockPassportData } from '../../utils/passports/genMockPassportData';
 import { SignatureAlgorithm } from '../../utils/types';
 import { getCircuitNameFromPassportData } from '../../utils/circuits/circuitsName';
 import { sigAlgs, fullSigAlgs } from './test_cases';
-import {
-  generateLinkId,
-  generateNullifier,
-} from '../../utils/passports/passport';
+import { generateLinkId, generateNullifier } from '../../utils/passports/passport';
 import { PASSPORT_ATTESTATION_ID } from '../../utils/constants/constants';
 import { parseCertificateSimple } from '../../utils/certificate_parsing/parseCertificateSimple';
 import serialized_dsc_tree from '../../utils/pubkeys/serialized_dsc_tree.json';
@@ -30,20 +27,25 @@ testSuite.forEach(
       this.timeout(0);
       let circuit: any;
 
+      const lastName = 'KUZNETSOV';
+      const firstName = 'VALERIY';
       const passportData = genMockPassportData(
         dgHashAlgo,
         eContentHashAlgo,
         `${sigAlg}_${hashFunction}_${domainParameter}_${keyLength}` as SignatureAlgorithm,
-        'FRA',
-        '000101',
-        '300101'
+        'UKR',
+        '960309',
+        '350803',
+        'AC1234567',
+        lastName,
+        firstName
       );
 
       const nullifierNonce = 1;
       const inputs = generateCircuitInputsSignature(
         passportData,
         serialized_dsc_tree as string,
-        nullifierNonce,
+        nullifierNonce
       );
 
       before(async () => {

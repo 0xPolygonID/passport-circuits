@@ -93,7 +93,8 @@ files_credential_circuit() {
     cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_vkey.json \
         ${S3_DIR}/credential-keys/${CIRCUIT_NAME}/verification_vkey.json
 
-    # TODO (illia-korotia): we have to upload wcd files for client circuits to s3
+    cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_graph.wcd \
+        ${S3_DIR}/credential-keys/${CIRCUIT_NAME}/graph.wcd
     
     # Print build statistics
     echo -e "${GREEN}Copy of $CIRCUIT_NAME completed in $(($(date +%s) - START_TIME)) seconds${NC}"

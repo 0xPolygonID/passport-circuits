@@ -21,11 +21,12 @@ function generateRandomBytes(length: number): number[] {
   return Array.from({ length }, () => Math.floor(Math.random() * 256) - 128);
 }
 
-function generateDataGroupHashes(mrzHash: number[], hashLen: number): [number, number[]][] {
+function generateDataGroupHashes(mrzHash: number[], dg2Hash: number[], hashLen: number): [number, number[]][] {
   // Generate hashes for DGs 2-15 (excluding some DGs that aren't typically used)
   const dataGroups: [number, number[]][] = [
     [1, mrzHash], // DG1 must be the MRZ hash
-    [2, generateRandomBytes(hashLen)],
+    [2, dg2Hash], // DG2 is a fixed hash for testing
+    //[2, generateRandomBytes(hashLen)],
     [3, generateRandomBytes(hashLen)],
     [4, generateRandomBytes(hashLen)],
     [5, generateRandomBytes(hashLen)],
@@ -242,9 +243,17 @@ export function genMockPassportData(
 
   // Generate MRZ hash first
   const mrzHash = hash(dgHashAlgo, formatMrz(mrz));
+  
+  const dg2Hash = mrzHash; /*[
+    ...new TextEncoder().encode('88328f6e5066315192a573911a6f33081da50fd51397af13edb3d7badbb59f98'),
+  ]; // sha of DG2 */
 
   // Generate random hashes for other DGs, passing mrzHash for DG1
-  const dataGroupHashes = generateDataGroupHashes(mrzHash as number[], getHashLen(dgHashAlgo));
+  const dataGroupHashes = generateDataGroupHashes(
+    mrzHash as number[],
+    dg2Hash as number[],
+    getHashLen(dgHashAlgo)
+  );
 
   const eContent = formatAndConcatenateDataHashes(dataGroupHashes, 63);
   const signedAttr = generateSignedAttr(hash(eContentHashAlgo, eContent) as number[]);
