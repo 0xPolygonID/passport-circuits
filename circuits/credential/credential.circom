@@ -3,6 +3,7 @@ pragma circom 2.1.9;
 include "./constants.circom";
 
 include "../utils/passport/parser/extractors.circom";
+include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 include "../utils/crypto/bitify/bytes.circom";
 include "../utils/crypto/hasher/hash.circom";
 include "../utils/iden3/claimbuilder.circom";
@@ -134,10 +135,13 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
         5174935119518540357656305431208837480424139947723235187406958318762813271623 // credentialSubject.customFields
     ];
 
+    // issuanceDate and documentDOETimestamp are in UnixTimestamp format
+    signal credentialExpiration <== DateDiffGreaterThanYear()(issuanceDate, documentDOETimestamp);
+
     /*
     // For debuging mt update
     log(documentDOB);
-    log(documentDOE);
+    log(documentDOE); // expiration date in format YYYYMMDD == passport mrz
     log(documentFirstNameHash);
     log(documentLastNameHash);
     log(documentNumberHash);
@@ -146,8 +150,8 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     log(revocationNonce);
     log(credentialStatusID);
     log(credentialSubjectID);
-    log(documentDOETimestamp * 1000000000);
-    log(issuanceDate);
+    log(credentialExpiration * 1000000000);
+    log(issuanceDate * 1000000000);
     log(issuer);
     log(documentNationalityHash);
     log(documentIssuerHash);
@@ -165,8 +169,8 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
         revocationNonce, // credentialStatus.revocationNonce
         credentialStatusID, // credentialStatus.id
         credentialSubjectID, // credentialSubject.id
-        documentDOETimestamp * 1000000000, // expirationDate.id
-        issuanceDate, // issuanceDate.id
+        credentialExpiration * 1000000000, // expirationDate.id
+        issuanceDate * 1000000000, // issuanceDate.id
         issuer, // issuer.id
         documentNationalityHash, // credentialSubject.nationalities
         documentIssuerHash, // credentialSubject.nationalities
@@ -192,7 +196,7 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
 
     component V0Calc = V0Calculator();
     V0Calc.revocation <== revocationNonce;
-    V0Calc.expiration <== documentDOETimestamp;
+    V0Calc.expiration <== credentialExpiration;
 
     component hV = Poseidon(4);
     hV.inputs[0] <== V0Calc.out;
