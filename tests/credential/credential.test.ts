@@ -45,7 +45,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       const passportData = genMockPassportData(
         shaAlg,
         shaAlg,
-        'rsa_sha1_65537_2048', // not important for this test
+        'rsa_sha256_65537_2048', // not important for this test
         'UKR',
         '960309',
         '350803',
@@ -108,16 +108,19 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
         `Hash Value: ${w[11]}`
       );
 
-      const linkId = Poseidon.spongeHashX(
+      const linkId_js = Poseidon.spongeHashX(
         [
           Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
-          Poseidon.hashBytes(new Uint8Array(inputs.dg2Hash)),
+          Poseidon.hashBytes(new Uint8Array(passportData.dg2Hash)),
           BigInt(inputs.linkNonce),
         ],
         3
       );
-      assert(w[12] === linkId);
-
+      console.log('\x1b[35m%s\x1b[0m', 'js: linkId:', linkId_js);
+      const linkId = BigInt((await circuit.getOutput(w, ['linkId'])).linkId);
+      console.log('\x1b[34m%s\x1b[0m', 'circom linkId', linkId);
+      assert(linkId === linkId_js);
+      
       // Compare template root
       assert(w[15] === 11355012832755671330307538002239263753806804904003813746452342893352381210514n);
     });
@@ -189,13 +192,13 @@ describe('credential_sha256.circom', function () {
     const passportData = genMockPassportData(
       'sha256',
       'sha256',
-      'rsa_sha1_65537_2048',
+      'rsa_sha256_65537_4096',
       'UKR',
       '960309',
       '240803',
       'AC1234567',
-      'KUZNETSOV',
-      'VALERIY'
+      lastName,
+      firstName
     );
     const inputs = await generateCircuitInputsCredential(passportData);
     try {

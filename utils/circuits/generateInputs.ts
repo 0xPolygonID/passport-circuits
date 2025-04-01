@@ -264,11 +264,7 @@ export async function generateCircuitInputsCredential(passportData: PassportData
 
   return {
     dg1: [...mrzByteArray],
-    dg2Hash: [
-      ...new TextEncoder().encode(
-        '88328f6e5066315192a573911a6f33081da50fd51397af13edb3d7badbb59f98'
-      ),
-    ],
+    dg2Hash: passportData.dg2Hash,
     lastNameSize: lastNameSize,
     firstNameSize: firstNameSize,
     currentDate: 250401,
