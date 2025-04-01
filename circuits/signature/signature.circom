@@ -12,6 +12,7 @@ include "@zk-kit/binary-merkle-root.circom/src/binary-merkle-root.circom";
 include "../utils/passport/checkPubkeysEqual.circom";
 include "../utils/passport/checkPubkeyPosition.circom";
 include "../utils/iden3/linkId.circom";
+include "./utils.circom";
 
 /// @title SIGNATURE
 /// @notice Main circuit — verifies the integrity of the passport data, the signature, and generates commitment and nullifier
@@ -183,7 +184,12 @@ template SIGNATURE(
     signal nullifierIntermediate <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
     nullifier <== Poseidon(2)([nullifierIntermediate, nullifierNonce]);
 
-    signal dg1PackedHash <== PackBytesAndPoseidon(DG_HASH_ALGO_BYTES)(dg1_hash_bytes);
-    signal dg2PackedHash <== PackBytesAndPoseidon(DG_HASH_ALGO_BYTES)(dg2_hash_bytes);
-    linkId <== LinkID()(dg1PackedHash, dg2PackedHash, linkNonce);
+    signal dg1PackedHash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES)(dg1_hash_bytes);
+
+    component dg2HexComp = DgHashToHex(DG_HASH_ALGO_BYTES);
+    dg2HexComp.dg2_hash_bytes <== dg2_hash_bytes;
+    signal dg2Hex[DG_HASH_ALGO_BYTES * 2] <== dg2HexComp.hex_bytes;
+
+    signal poseidonDg2Hash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES * 2)(dg2Hex);
+    linkId <== LinkID()(dg1PackedHash, poseidonDg2Hash, linkNonce);
 }

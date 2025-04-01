@@ -4,8 +4,8 @@ import { assert } from 'chai';
 import { genMockPassportData } from '../../utils/passports/genMockPassportData';
 import { hashAlgs, fullHashAlgs } from './test_cases';
 import { wasm as wasm_tester } from 'circom_tester';
-import { Poseidon } from '@iden3/js-crypto';
 import { generateCircuitInputsCredential } from '../../utils/circuits/generateInputs';
+import { generateLinkId } from '../../utils/passports/passport';
 
 dotenv.config();
 
@@ -96,9 +96,11 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       // Date of expiry hash (output 9)
       assert(w[9] === 20350803n);
 
+      console.log('\x1b[35m%s\x1b[0m', 'Hash Index:', w[10]);
+      console.log('\x1b[34m%s\x1b[0m', 'Hash Value:', w[11]);
       // Hash Index
       assert(
-        w[10] === 19870325861166529664609721574092177771035485503590811272439060431918456510657n,
+        w[10] === 18453705905784539948506207037969849512599789901901025934328593654364072030693n,
         `Hash Index: ${w[10]}`
       );
 
@@ -108,16 +110,9 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
         `Hash Value: ${w[11]}`
       );
 
-      const linkId_js = Poseidon.spongeHashX(
-        [
-          Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
-          Poseidon.hashBytes(new Uint8Array(passportData.dg2Hash)),
-          BigInt(inputs.linkNonce),
-        ],
-        3
-      );
+      const linkId_js = generateLinkId(passportData, inputs.linkNonce.toString()); 
       console.log('\x1b[35m%s\x1b[0m', 'js: linkId:', linkId_js);
-      const linkId = BigInt((await circuit.getOutput(w, ['linkId'])).linkId);
+      const linkId = (await circuit.getOutput(w, ['linkId'])).linkId;
       console.log('\x1b[34m%s\x1b[0m', 'circom linkId', linkId);
       assert(linkId === linkId_js);
       
