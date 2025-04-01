@@ -21,7 +21,7 @@ interface Circuit {
 }
 
 
-async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize: number) {
+async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize: number, dg2HashHex: number[]) {
   const mrzByteArray = formatMrz(mrz);
   if (mrzByteArray.length !== 93) {
     throw new Error('MRZ should be 93 bytes long');
@@ -92,7 +92,7 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
 
   return {
     dg1: [...mrzByteArray],
-    dg2Hash: [... new TextEncoder().encode('88328f6e5066315192a573911a6f33081da50fd51397af13edb3d7badbb59f98')],
+    dg2Hash: dg2HashHex,
     lastNameSize: lastNameSize,
     firstNameSize: firstNameSize,
     currentDate: 250401,
@@ -137,7 +137,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       const passportData = genMockPassportData(
         shaAlg,
         shaAlg,
-        'rsa_sha1_65537_2048', // not important for this test
+        'rsa_sha256_65537_2048', // not important for this test
         'UKR',
         '960309',
         '350803',
@@ -145,7 +145,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
         'KUZNETSOV',
         'VALERIY'
       );
-      const inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length);
+      const inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length, passportData.dg2HashHex);
 
       const w = await circuit.calculateWitness(inputs, true);
       await circuit.checkConstraints(w);
@@ -192,7 +192,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       console.log('\x1b[34m%s\x1b[0m', 'Hash Value:', w[11]);
       // Hash Index
       assert(
-        w[10] === 18453705905784539948506207037969849512599789901901025934328593654364072030693n,
+        w[10] === 1790601711374218373405730254586349227901779305836311346166433202275887862304n,
         `Hash Index: ${w[10]}`
       );
 
@@ -287,7 +287,7 @@ describe('credential_sha256.circom', function () {
       'KUZNETSOV',
       'VALERIY'
     );
-    const inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length);
+    const inputs = await prepareTestData(passportData.mrz, lastName.length, firstName.length, passportData.dg2HashHex);
     try {
       await circuit.calculateWitness(inputs, true);
       assert.fail('Expected an Assertion Error but no error was thrown');
