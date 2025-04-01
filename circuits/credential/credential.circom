@@ -21,9 +21,9 @@ template Integrity(hashAlgo) {
     signal dg1Bits[DG1_TD3_SIZE_BITS()] <== BytesToBitsArray(DG1_TD3_SIZE())(dg1);
     signal dg1ShaBits[hashAlgo] <== ShaHashBits(DG1_TD3_SIZE_BITS(), hashAlgo)(dg1Bits);
     
-    signal dg1ShaBytes[hashAlgo / 8];
+    signal dg1ShaBytes[hashAlgBytesSize];
     dg1ShaBytes <== BitsToBytesArray(hashAlgo)(dg1ShaBits);
-    poseidonDg1Hash <== PaddingAndPoseidon(hashAlgo/8)(dg1ShaBytes);
+    poseidonDg1Hash <== PaddingAndPoseidon(hashAlgBytesSize)(dg1ShaBytes);
 }
 
 /*
