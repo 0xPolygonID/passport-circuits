@@ -2,13 +2,11 @@ import dotenv from 'dotenv';
 import { expect } from 'chai';
 import fs from 'fs';
 import { genMockPassportData } from '../../../utils/passports/genMockPassportData';
-import { getCircuitNameFromPassportData } from '../../../utils/circuits/circuitsName';
 import * as snarkjs from 'snarkjs';
 import { exec } from 'child_process';
 import { fullHashAlgs, hashAlgs } from './test_cases';
-import { formatMrz } from '../../../utils/passports/format';
-import { newMemEmptyTrie } from 'circomlibjs';
-import { prepareCredentialTestData } from '../../../utils/credential';
+import { generateCircuitInputsCredential } from '../../../utils/circuits/generateInputs';
+
 dotenv.config();
 
 const testSuite = process.env.FULL_TEST_SUITE === 'true' ? fullHashAlgs : hashAlgs;
@@ -56,12 +54,10 @@ testSuite.forEach(
       let witnes_path;
       let zkey_path;
       let v_key;
-      const lastName = 'KUZNETSOV';
-      const firstName = 'VALERIY';
       let inputs;
       this.timeout(0); // Disable timeout
       before(async () => {
-        inputs = await prepareCredentialTestData(passportData.mrz, lastName.length, firstName.length, passportData.dg2HashHex || []);
+        inputs = await generateCircuitInputsCredential(passportData);
         circuitName = `credential_${shaAlg}`;
         witness_calculator = `./circom-witnesscalc/target/release/calc-witness`;
         circuit_graph_path = `./build/credential/${circuitName}/${circuitName}_graph.wcd`;
