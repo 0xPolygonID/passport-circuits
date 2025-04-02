@@ -55,60 +55,51 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     signal input templateRoot;
     signal input siblings[smtChanges][nLevels];
 
-    signal output documentCodeHash;
-    signal output documentIssuerHash;
-    signal output documentLastNameHash;
-    signal output documentFirstNameHash;
-    signal output documentNumberHash;
-    signal output documentNationalityHash;
-    signal output documentDOB;
-    signal output documentSexHash;
-    signal output documentDOE;
     signal output hashIndex;
     signal output hashValue;
     signal output linkId;
 
     component documentCodeExtractor = Extractor(DG1_TD3_SIZE(), documentCodePosition(), documentCodeSize());
     documentCodeExtractor.dg1 <== dg1;
-    documentCodeHash <== documentCodeExtractor.hash;
+    signal documentCodeHash <== documentCodeExtractor.hash;
 
     component documentIssuerExtractor = Extractor(DG1_TD3_SIZE(), issuingStatePosition(), issuingStateSize());
     documentIssuerExtractor.dg1 <== dg1;
-    documentIssuerHash <== documentIssuerExtractor.hash;
+    signal documentIssuerHash <== documentIssuerExtractor.hash;
 
     component lastNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
     lastNameExtractor.dg1 <== dg1;
     lastNameExtractor.start <== nameOfHolderPosition();
     lastNameExtractor.end <== lastNameSize;
-    documentLastNameHash <== lastNameExtractor.hash;
+    signal documentLastNameHash <== lastNameExtractor.hash;
 
     component firstNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
     firstNameExtractor.dg1 <== dg1;
     firstNameExtractor.start <== nameOfHolderPosition() + lastNameSize + 2;
     firstNameExtractor.end <== firstNameSize;
-    documentFirstNameHash <== firstNameExtractor.hash;
+    signal documentFirstNameHash <== firstNameExtractor.hash;
 
     component documentNumberExtractor = Extractor(DG1_TD3_SIZE(), documentNumberPosition(), documentNumberSize());
     documentNumberExtractor.dg1 <== dg1;
-    documentNumberHash <== documentNumberExtractor.hash;
+    signal documentNumberHash <== documentNumberExtractor.hash;
 
     component documentNationalityExtractor = Extractor(DG1_TD3_SIZE(), nationalityPosition(), nationalitySize());
     documentNationalityExtractor.dg1 <== dg1;
-    documentNationalityHash <== documentNationalityExtractor.hash;
+    signal documentNationalityHash <== documentNationalityExtractor.hash;
 
     component documentDOBExtractor = ExtractorDOB(DG1_TD3_SIZE(), dobPosition(), dobSize());
     documentDOBExtractor.dg1 <== dg1;
     documentDOBExtractor.currentDate <== currentDate;
-    documentDOB <== documentDOBExtractor.out;
+    signal documentDOB <== documentDOBExtractor.out;
 
     component documentSexExtractor = Extractor(DG1_TD3_SIZE(), sexPosition(), sexSize());
     documentSexExtractor.dg1 <== dg1;
-    documentSexHash <== documentSexExtractor.hash;
+    signal documentSexHash <== documentSexExtractor.hash;
 
     component documentDOEExtractor = ExtractorDOE(DG1_TD3_SIZE(), dateOfExpiryPosition(), dateOfExpirySize());
     documentDOEExtractor.dg1 <== dg1;
     documentDOEExtractor.currentDate <== currentDate;
-    documentDOE <== documentDOEExtractor.out;
+    signal documentDOE <== documentDOEExtractor.out;
     signal documentDOETimestamp <== documentDOEExtractor.timestamp;
 
     component dg2HashHasher = PaddingAndPoseidon(hashSize);
