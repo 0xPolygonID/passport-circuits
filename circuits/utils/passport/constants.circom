@@ -24,3 +24,18 @@ function getMaxCSCALevels(){
 function getMaxDSCLevels(){
     return 21;
 }
+
+// Max chunks bytes for Poseidon chunk
+function chunkSize() {
+    return 31;
+}
+
+// Max Poseidon chunks
+function chunkCount() {
+    return 16;
+}
+
+// Max Poseidon message size
+function messageMaxSize() {
+    return chunkSize() * chunkCount();
+}

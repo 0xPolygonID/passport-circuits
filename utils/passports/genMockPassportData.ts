@@ -14,7 +14,7 @@ import {
 import { getCurveForElliptic } from '../certificate_parsing/curves';
 import { formatAndConcatenateDataHashes, formatMrz } from './format';
 import { generateSignedAttr } from './format';
-import { initPassportDataParsing } from './passport';
+import { byteToHexNibbles, initPassportDataParsing } from './passport';
 
 function generateRandomBytes(length: number): number[] {
   // Generate numbers between -128 and 127 to match the existing signed byte format
@@ -242,16 +242,13 @@ export function genMockPassportData(
   }
 
   // Generate MRZ hash first
-  const mrzHash = hash(dgHashAlgo, formatMrz(mrz));
-  
-  const dg2Hash = mrzHash; /*[
-    ...new TextEncoder().encode('88328f6e5066315192a573911a6f33081da50fd51397af13edb3d7badbb59f98'),
-  ]; // sha of DG2 */
+  const mrzHash = hash(dgHashAlgo, formatMrz(mrz)) as number[];
+  const dg2Hash = mrzHash;
 
   // Generate random hashes for other DGs, passing mrzHash for DG1
   const dataGroupHashes = generateDataGroupHashes(
     mrzHash as number[],
-    dg2Hash as number[],
+    dg2Hash,
     getHashLen(dgHashAlgo)
   );
 
@@ -266,6 +263,7 @@ export function genMockPassportData(
     mrz: mrz,
     dg1Hash: dataGroupHashes.find(([dgNum]) => dgNum === 1)?.[1] || [],
     dg2Hash: dataGroupHashes.find(([dgNum]) => dgNum === 2)?.[1] || [],
+    dg2HashHex: byteToHexNibbles(dg2Hash),
     eContent: eContent,
     signedAttr: signedAttr,
     encryptedDigest: signatureBytes,

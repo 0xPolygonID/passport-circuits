@@ -82,12 +82,24 @@ export function generateCommitment(
 export function generateLinkId(passportData: PassportData, LinkNonce: string) {
   return Poseidon.spongeHashX(
     [
-      BigInt(packBytesAndPoseidon(passportData.dg1Hash.map(byte => byte < 0 ? byte + 256 : byte))),
-      BigInt(packBytesAndPoseidon(passportData.dg2Hash.map(byte => byte < 0 ? byte + 256 : byte))),
+      Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
+      Poseidon.hashBytes(new Uint8Array(passportData.dg2HashHex)),
       BigInt(LinkNonce),
     ],
     3
   ).toString();
+}
+
+export function byteToHexNibbles(byteArray) {
+  const array = byteArray.map(byte => byte < 0 ? byte + 256 : byte);
+  const result = [];
+  for (let i = 0; i < array.length; i++) {
+    // Get high nibble (first hex digit)
+    result.push(Math.floor(array[i] / 16));
+    // Get low nibble (second hex digit)
+    result.push(array[i] % 16);
+  }
+  return result;
 }
 
 export function generateNullifier(passportData: PassportData, nullifierNonce: number) {

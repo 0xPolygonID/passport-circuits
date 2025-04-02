@@ -4,6 +4,7 @@ import { PassportMetadata } from "./passports/passport_parsing/parsePassportData
 export type PassportData = {
   mrz: string;
   dg1Hash?: number[];
+  dg2HashHex?: number[];
   dg2Hash?: number[];
   dgPresents?: any[];
   dsc: string;
