@@ -214,6 +214,7 @@ export async function generateCircuitInputsCredential(passportData: PassportData
   }
   const templateRoot = tree.F.toObject(tree.root);
 
+  const currentDate = formatDate(new Date());
   const issuanceDate = Math.round(+new Date() / 1000);
   const expirationDate = issuanceDate + 365 * 24 * 60 * 60; // 1 year
   const updateTemplate = [
@@ -269,7 +270,7 @@ export async function generateCircuitInputsCredential(passportData: PassportData
     dg2Hash: passportData.dg2HashHex,
     lastNameSize: lastNameSize,
     firstNameSize: firstNameSize,
-    currentDate: 250401,
+    currentDate: currentDate,
 
     revocationNonce: 0,
     credentialStatusID:
@@ -284,6 +285,36 @@ export async function generateCircuitInputsCredential(passportData: PassportData
     templateRoot: templateRoot.toString(),
     siblings: siblings.map((arr) => arr.map((x: BigInt) => x.toString())),
   };
+}
+
+function formatDate(d) {
+  //get the month
+  var month = d.getMonth();
+  //get the day
+  //convert day to string
+  var day = d.getDate().toString();
+  //get the year
+  var year = d.getFullYear();
+
+  //pull the last two digits of the year
+  year = year.toString().substr(-2);
+
+  //increment month by 1 since it is 0 indexed
+  //converts month to a string
+  month = (month + 1).toString();
+
+  //if month is 1-9 pad right with a 0 for two digits
+  if (month.length === 1) {
+    month = '0' + month;
+  }
+
+  //if day is between 1-9 pad right with a 0 for two digits
+  if (day.length === 1) {
+    day = '0' + day;
+  }
+
+  //return the string "yyMMdd"
+  return year + month + day;
 }
 
 export function formatInput(input: any) {
