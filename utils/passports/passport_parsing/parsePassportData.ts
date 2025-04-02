@@ -19,6 +19,7 @@ export interface PassportMetadata {
   dg1HashSize: number;
   dg1HashFunction: string;
   dg1HashOffset: number;
+  dg2HashOffset: number;
   dgPaddingBytes: number;
   eContentSize: number;
   eContentHashFunction: string;
@@ -121,6 +122,11 @@ export function parsePassportData(passportData: PassportData): PassportMetadata 
 
     dscMetaData = parseDscCertificateData(parsedDsc);
   }
+  
+  // find dg2 hash offset
+  const dg2Hash = passportData.dg2Hash;
+  const normalizedDg2Hash = (dg2Hash as number[]).map((byte) => (byte > 127 ? byte - 256 : byte));
+  const dg2HashOffset = findSubarrayIndex(passportData.eContent, normalizedDg2Hash);
 
   return {
     dataGroups:
@@ -133,6 +139,7 @@ export function parsePassportData(passportData: PassportData): PassportMetadata 
     dg1HashSize: passportData.dg1Hash ? passportData.dg1Hash.length : 0,
     dg1HashFunction,
     dg1HashOffset,
+    dg2HashOffset,
     dgPaddingBytes,
     eContentSize: passportData.eContent?.length || 0,
     eContentHashFunction,

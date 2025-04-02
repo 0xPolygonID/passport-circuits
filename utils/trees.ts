@@ -1,9 +1,8 @@
-import { poseidon3, poseidon2, poseidon6, poseidon13, poseidon12 } from 'poseidon-lite';
 import { ChildNodes, SMT } from '@openpassport/zk-kit-smt';
 import { stringToAsciiBigIntArray } from './circuits/uuid';
 import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
 import { CertificateData } from './certificate_parsing/dataStructure';
-import { packBytesAndPoseidon } from './hash';
+import { flexiblePoseidon, packBytesAndPoseidon } from './hash';
 import {
   DscCertificateMetaData,
   parseDscCertificateData,
@@ -23,6 +22,7 @@ import { pad } from './passports/passport';
 import countries from 'i18n-iso-countries';
 import en from 'i18n-iso-countries/langs/en.json';
 import { DocumentType } from './types';
+import { Poseidon } from '@iden3/js-crypto';
 countries.registerLocale(en);
 
 export async function getCommitmentTree(documentType: DocumentType | null): Promise<string> {
@@ -41,7 +41,7 @@ export async function fetchTreeFromUrl(url: string): Promise<LeanIMT> {
   }
   const commitmentMerkleTree = await response.json();
   console.log('\x1b[90m%s\x1b[0m', 'commitment merkle tree: ', commitmentMerkleTree);
-  const tree = LeanIMT.import((a, b) => poseidon2([a, b]), commitmentMerkleTree);
+  const tree = LeanIMT.import((a, b) => Poseidon.spongeHashX([a, b], 2), commitmentMerkleTree);
   return tree;
 }
 
@@ -56,14 +56,14 @@ export function getLeaf(parsed: CertificateData, type: 'dsc' | 'csca'): string {
     );
     const dsc_hash = packBytesAndPoseidon(Array.from(paddedTbsBytes));
 
-    return poseidon2([dsc_hash, tbsArray.length]).toString();
+    return Poseidon.spongeHashX([BigInt(dsc_hash), BigInt(tbsArray.length)], 2).toString();
   } else {
     const tbsBytesArray = Array.from(parsed.tbsBytes);
     const paddedTbsBytesArray = tbsBytesArray.concat(
       new Array(max_csca_bytes - tbsBytesArray.length).fill(0)
     );
     const csca_hash = packBytesAndPoseidon(paddedTbsBytesArray);
-    return poseidon2([csca_hash, tbsBytesArray.length]).toString();
+    return Poseidon.spongeHashX([BigInt(csca_hash), BigInt(tbsBytesArray.length)], 2).toString();
   }
 }
 
@@ -83,7 +83,7 @@ export function getLeafDscTreeFromParsedDsc(dscParsed: CertificateData): string 
 export function getLeafDscTree(dsc_parsed: CertificateData, csca_parsed: CertificateData): string {
   const dscLeaf = getLeaf(dsc_parsed, 'dsc');
   const cscaLeaf = getLeaf(csca_parsed, 'csca');
-  return poseidon2([dscLeaf, cscaLeaf]).toString();
+  return Poseidon.spongeHashX([BigInt(dscLeaf), BigInt(cscaLeaf)], 2).toString();
 }
 
 export function getLeafCscaTree(csca_parsed: CertificateData): string {
@@ -94,7 +94,7 @@ export function getDscTreeInclusionProof(
   leaf: string,
   serialized_dsc_tree: string
 ): [string, number[], bigint[], number] {
-  const hashFunction = (a: any, b: any) => poseidon2([a, b]);
+  const hashFunction = (a: any, b: any) => Poseidon.spongeHashX([a, b], 2);
   const tree = LeanIMT.import(hashFunction, serialized_dsc_tree);
   const index = tree.indexOf(BigInt(leaf));
   if (index === -1) {
@@ -105,7 +105,7 @@ export function getDscTreeInclusionProof(
 }
 
 export function getCscaTreeInclusionProof(leaf: string, _serialized_csca_tree: any[][]) {
-  let tree = new IMT(poseidon2, CSCA_TREE_DEPTH, 0, 2);
+  let tree = new IMT(flexiblePoseidon, CSCA_TREE_DEPTH, 0, 2);
   tree.setNodes(_serialized_csca_tree);
   const index = tree.indexOf(leaf);
   if (index === -1) {
@@ -120,7 +120,7 @@ export function getCscaTreeInclusionProof(leaf: string, _serialized_csca_tree: a
 }
 
 export function getCscaTreeRoot(serialized_csca_tree: any[][]) {
-  let tree = new IMT(poseidon2, CSCA_TREE_DEPTH, 0, 2);
+  let tree = new IMT(flexiblePoseidon, CSCA_TREE_DEPTH, 0, 2);
   tree.setNodes(serialized_csca_tree);
   return tree.root;
 }
@@ -208,7 +208,15 @@ export function buildSMT(field: any[], treetype: string): [number, number, SMT] 
   let startTime = performance.now();
 
   const hash2 = (childNodes: ChildNodes) =>
-    childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
+    childNodes.length === 2
+      ? Poseidon.spongeHashX(
+          childNodes.map((c) => BigInt(c)),
+          2
+        )
+      : Poseidon.spongeHashX(
+          childNodes.map((c) => BigInt(c)),
+          3
+        );
   const tree = new SMT(hash2, true);
 
   for (let i = 0; i < field.length; i++) {
@@ -313,7 +321,7 @@ function processNameAndDob(entry: any, i: number): bigint {
   }
   const nameHash = processName(firstName, lastName, i);
   const dobHash = processDob(day, month, year, i);
-  return generateSmallKey(poseidon2([dobHash, nameHash]));
+  return generateSmallKey(Poseidon.spongeHashX([dobHash, nameHash], 2));
 }
 
 function processNameAndYob(entry: any, i: number): bigint {
@@ -326,7 +334,7 @@ function processNameAndYob(entry: any, i: number): bigint {
   }
   const nameHash = processName(firstName, lastName, i);
   const yearHash = processYear(year, i);
-  return generateSmallKey(poseidon2([yearHash, nameHash]));
+  return generateSmallKey(Poseidon.spongeHashX([yearHash, nameHash], 2));
 }
 
 function processYear(year: string, i: number): bigint {
@@ -336,7 +344,10 @@ function processYear(year: string, i: number): bigint {
 }
 
 function getYearLeaf(yearArr: (bigint | number)[]): bigint {
-  return poseidon2(yearArr);
+  return Poseidon.spongeHashX(
+    yearArr.map((year) => BigInt(year)),
+    2
+  );
 }
 
 function processName(firstName: string, lastName: string, i: number): bigint {
@@ -411,7 +422,10 @@ export function getCountryLeaf(
   }
   try {
     const country = country_by.concat(country_to);
-    return poseidon6(country);
+    return Poseidon.spongeHashX(
+      country.map((c) => BigInt(c)),
+      6
+    );
   } catch (err) {
     console.log('err : sanc_country hash', err, i, country_by, country_to);
   }
@@ -431,7 +445,10 @@ export function getPassportNumberAndNationalityLeaf(
     return;
   }
   try {
-    const fullHash = poseidon12(passport.concat(nationality));
+    const fullHash = Poseidon.spongeHashX(
+      passport.concat(nationality).map((n) => BigInt(n)),
+      12
+    );
     return generateSmallKey(fullHash);
   } catch (err) {
     console.log('err : passport', err, i, passport);
@@ -443,7 +460,7 @@ export function getNameDobLeaf(
   dobMrz: (bigint | number)[],
   i?: number
 ): bigint {
-  return generateSmallKey(poseidon2([getDobLeaf(dobMrz), getNameLeaf(nameMrz)]));
+  return generateSmallKey(Poseidon.spongeHashX([getDobLeaf(dobMrz), getNameLeaf(nameMrz)], 2));
 }
 
 export function getNameYobLeaf(
@@ -451,7 +468,7 @@ export function getNameYobLeaf(
   yobMrz: (bigint | number)[],
   i?: number
 ): bigint {
-  return generateSmallKey(poseidon2([getYearLeaf(yobMrz), getNameLeaf(nameMrz)]));
+  return generateSmallKey(Poseidon.spongeHashX([getYearLeaf(yobMrz), getNameLeaf(nameMrz)], 2));
 }
 
 export function getNameLeaf(nameMrz: (bigint | number)[], i?: number): bigint {
@@ -461,11 +478,16 @@ export function getNameLeaf(nameMrz: (bigint | number)[], i?: number): bigint {
   chunks.push(nameMrz.slice(0, 13), nameMrz.slice(13, 26), nameMrz.slice(26, 39)); // 39/3 for posedion to digest
 
   for (const chunk of chunks) {
-    middleChunks.push(poseidon13(chunk));
+    middleChunks.push(
+      Poseidon.spongeHashX(
+        chunk.map((c) => BigInt(c)),
+        13
+      )
+    );
   }
 
   try {
-    return poseidon3(middleChunks);
+    return Poseidon.spongeHashX(middleChunks, 3);
   } catch (err) {
     console.log('err : Name', err, i, nameMrz);
   }
@@ -477,7 +499,10 @@ export function getDobLeaf(dobMrz: (bigint | number)[], i?: number): bigint {
     return;
   }
   try {
-    return poseidon6(dobMrz);
+    return Poseidon.spongeHashX(
+      dobMrz.map((d) => BigInt(d)),
+      6
+    );
   } catch (err) {
     console.log('err : Dob', err, i, dobMrz);
   }

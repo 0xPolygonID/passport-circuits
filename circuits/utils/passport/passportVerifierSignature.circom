@@ -18,7 +18,10 @@ include "./signatureVerifier.circom";
 /// @param MAX_ECONTENT_PADDED_LEN Maximum length of padded eContent
 /// @param MAX_SIGNED_ATTR_PADDED_LEN Maximum length of padded signed attributes
 /// @input dg1 Document Group 1 data (93 bytes) - [dg1_removed]
-/// @input dg1_hash_offset Offset for DG1 hash  - [dg1_removed]
+/// @input dg1_hash_bytes Hash bytes of DG1
+/// @input dg1_hash_offset Offset for DG1 hash
+/// @input dg2_hash_bytes Hash bytes of DG2
+/// @inpit dg2_hash_offset Offset for DG2 hash
 /// @input eContent eContent data - contains all DG hashes
 /// @input eContent_padded_length Padded length of eContent
 /// @input signed_attr Signed attributes
@@ -28,19 +31,23 @@ include "./signatureVerifier.circom";
 /// @input signature Passport signature
 /// @output eContentShaBytes Hash of eContent
 /// @output signedAttrShaBytes Hash of signed attributes
-template PassportVerifierSignature(ECONTENT_HASH_ALGO, signatureAlgorithm, n, k, MAX_ECONTENT_PADDED_LEN, MAX_SIGNED_ATTR_PADDED_LEN) {
+template PassportVerifierSignature(DG_HASH_ALGO, ECONTENT_HASH_ALGO, signatureAlgorithm, n, k, MAX_ECONTENT_PADDED_LEN, MAX_SIGNED_ATTR_PADDED_LEN) {
     assert(MAX_ECONTENT_PADDED_LEN % 64 == 0);
 
     var kLengthFactor = getKLengthFactor(signatureAlgorithm);
     var kScaled = k * kLengthFactor;
 
-    // var DG_HASH_ALGO_BYTES = DG_HASH_ALGO / 8; - [dg1_removed]
+    var DG_HASH_ALGO_BYTES = DG_HASH_ALGO / 8;
     var ECONTENT_HASH_ALGO_BYTES = ECONTENT_HASH_ALGO / 8;
     var SIGNED_ATTR_HASH_ALGO = getHashLength(signatureAlgorithm);
     var SIGNED_ATTR_HASH_ALGO_BYTES = SIGNED_ATTR_HASH_ALGO / 8;
 
     // signal input dg1[93]; - [dg1_removed]
-    // signal input dg1_hash_offset; - [dg1_removed]
+    signal input dg1_hash_bytes[DG_HASH_ALGO_BYTES];
+    signal input dg1_hash_offset;
+    signal input dg2_hash_bytes[DG_HASH_ALGO_BYTES];
+    signal input dg2_hash_offset;
+
     signal input eContent[MAX_ECONTENT_PADDED_LEN];
     signal input eContent_padded_length;
     signal input signed_attr[MAX_SIGNED_ATTR_PADDED_LEN];
@@ -50,10 +57,13 @@ template PassportVerifierSignature(ECONTENT_HASH_ALGO, signatureAlgorithm, n, k,
     signal input signature_passport[kScaled];
 
     // check offsets refer to valid ranges
-    /* - [dg1_removed] offset check for dg1
+    // offset check for dg1
     signal dg1OffsetInRange <== LessEqThan(12)([dg1_hash_offset + DG_HASH_ALGO_BYTES, eContent_padded_length]); 
     dg1OffsetInRange === 1;
-    */
+    // offset check for dg2
+    signal dg2OffsetInRange <== LessEqThan(12)([dg2_hash_offset + DG_HASH_ALGO_BYTES, eContent_padded_length]); 
+    dg2OffsetInRange === 1;
+
     signal signedAttrOffsetInRange <== LessEqThan(12)([signed_attr_econtent_hash_offset + ECONTENT_HASH_ALGO_BYTES, signed_attr_padded_length]); 
     signedAttrOffsetInRange === 1;
     
@@ -63,14 +73,22 @@ template PassportVerifierSignature(ECONTENT_HASH_ALGO, signatureAlgorithm, n, k,
     signal dg1Bits[93 * 8] <== BytesToBitsArray(93)(dg1);
     signal dg1ShaBits[DG_HASH_ALGO] <== ShaHashBits(93 * 8, DG_HASH_ALGO)(dg1Bits);
     signal dg1ShaBytes[DG_HASH_ALGO_BYTES] <== BitsToBytesArray(DG_HASH_ALGO)(dg1ShaBits);
-   
+    */
 
     // assert DG1 hash matches the one in eContent
+    // signal dg1ShaBytes[DG_HASH_ALGO_BYTES] <== HashToBytes(DG_HASH_ALGO_BYTES)(dg1_packed_hash);
     signal dg1Hash[DG_HASH_ALGO_BYTES] <== VarShiftLeft(MAX_ECONTENT_PADDED_LEN, DG_HASH_ALGO_BYTES)(eContent, dg1_hash_offset);
     for(var i = 0; i < DG_HASH_ALGO_BYTES; i++) {
-        dg1Hash[i] === dg1ShaBytes[i];
+        dg1Hash[i] === dg1_hash_bytes[i];
     }
-    */
+
+    // assert DG2 hash matches the one in eContent
+    // signal dg2ShaBytes[DG_HASH_ALGO_BYTES] <== HashToBytes(DG_HASH_ALGO_BYTES)(dg2_packed_hash);
+    signal dg2Hash[DG_HASH_ALGO_BYTES] <== VarShiftLeft(MAX_ECONTENT_PADDED_LEN, DG_HASH_ALGO_BYTES)(eContent, dg2_hash_offset);
+    for(var i = 0; i < DG_HASH_ALGO_BYTES; i++) {
+        dg2Hash[i] === dg2_hash_bytes[i];
+    }
+    
 
     /* 
     This part verifies that the hash of eContent (computed in eContentShaBytes) matches the one present in signed_attr. This ensures that:

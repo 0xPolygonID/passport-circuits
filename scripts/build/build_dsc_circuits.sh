@@ -13,14 +13,17 @@ CIRCUITS=(
     # ECDSA circuits
     "dsc_sha1_ecdsa_brainpoolP256r1:22:false"
     # "dsc_sha256_ecdsa_brainpoolP224r1:21:false" # Instance not found
+    "dsc_sha1_ecdsa_secp256r1:22:false"
     "dsc_sha256_ecdsa_brainpoolP256r1:22:false"
     "dsc_sha256_ecdsa_brainpoolP384r1:23:false"
     "dsc_sha256_ecdsa_secp256r1:22:false"
     "dsc_sha256_ecdsa_secp384r1:23:false"
+    "dsc_sha256_ecdsa_secp521r1:24:false"
     "dsc_sha384_ecdsa_brainpoolP384r1:23:false"
     "dsc_sha384_ecdsa_brainpoolP512r1:24:false"
     "dsc_sha384_ecdsa_secp384r1:23:false"
     "dsc_sha512_ecdsa_brainpoolP512r1:24:false"
+    "dsc_sha512_ecdsa_secp521r1:24:false"
 
     # RSA circuits
     "dsc_sha1_rsa_65537_4096:21:false"

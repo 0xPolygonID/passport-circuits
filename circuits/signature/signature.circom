@@ -12,10 +12,11 @@ include "@zk-kit/binary-merkle-root.circom/src/binary-merkle-root.circom";
 include "../utils/passport/checkPubkeysEqual.circom";
 include "../utils/passport/checkPubkeyPosition.circom";
 include "../utils/iden3/linkId.circom";
+include "./utils.circom";
 
 /// @title SIGNATURE
 /// @notice Main circuit — verifies the integrity of the passport data, the signature, and generates commitment and nullifier
-/// @param DG_HASH_ALGO Hash algorithm used for DG hashing - [dg1_removed] from the original template
+/// @param DG_HASH_ALGO Hash algorithm used for DG hashing
 /// @param ECONTENT_HASH_ALGO Hash algorithm used for eContent
 /// @param signatureAlgorithm Algorithm used for passport signature verification - contains the information about the final hash algorithm
 /// @param n Number of bits per chunk the key is split into.
@@ -26,8 +27,10 @@ include "../utils/iden3/linkId.circom";
 /// @input raw_dsc_actual_length Actual length of DSC certificate
 /// @input dsc_pubKey_offset Offset of DSC public key in certificate
 /// @input dsc_pubKey_actual_size Actual size of DSC public key
-/// @input dg1 Document Group 1 data (93 bytes)
+/// @input dg1_hash_bytes Hash bytes of DG1
 /// @input dg1_hash_offset Offset for DG1 hash
+/// @input dg2_hash_bytes Hash bytes of DG2
+/// @inpit dg2_hash_offset Offset for DG2 hash
 /// @input eContent eContent data - contains all DG hashes
 /// @input eContent_padded_length Padded length of eContent
 /// @input signed_attr Signed attributes
@@ -39,12 +42,13 @@ include "../utils/iden3/linkId.circom";
 /// @input leaf_depth Actual size of the merkle tree
 /// @input path Path indices for DSC Merkle proof
 /// @input siblings Sibling hashes for DSC Merkle proof
+/// @input nullifierNonce Nonce for nullifier generation
+/// @input linkNonce Nonce for linkId generation
 /// @input csca_tree_leaf Leaf of CSCA Merkle tree
-/// @input secret Secret for commitment generation. Saved by the user to access their commitment
 /// @output nullifier Generated nullifier - deterministic on the passport data
 /// @output commitment Commitment that will be added to the onchain registration tree
 template SIGNATURE(
-    // DG_HASH_ALGO, - [dg1_removed]
+    DG_HASH_ALGO,
     ECONTENT_HASH_ALGO,
     signatureAlgorithm,
     n,
@@ -68,15 +72,18 @@ template SIGNATURE(
     var ECONTENT_HASH_ALGO_BYTES = ECONTENT_HASH_ALGO / 8;
 
     var MAX_DSC_PUBKEY_LENGTH = n * kScaled / 8;
+    var DG_HASH_ALGO_BYTES = DG_HASH_ALGO / 8;
 
     signal input raw_dsc[MAX_DSC_LENGTH];
     signal input raw_dsc_actual_length;
     signal input dsc_pubKey_offset;
     signal input dsc_pubKey_actual_size;
 
-    // signal input dg1[93];  [dg1_removed]
-    // signal input dg1_hash_offset; // [dg1_removed]
-    signal input dg1_packed_hash; // [dg1_removed] - adding the packed hash instead of dg1 and dg1_hash_offset
+    signal input dg1_hash_bytes[DG_HASH_ALGO_BYTES];
+    signal input dg1_hash_offset;
+    signal input dg2_hash_bytes[DG_HASH_ALGO_BYTES];
+    signal input dg2_hash_offset;
+
     signal input eContent[MAX_ECONTENT_PADDED_LEN];
     signal input eContent_padded_length;
     signal input signed_attr[MAX_SIGNED_ATTR_PADDED_LEN];
@@ -92,12 +99,10 @@ template SIGNATURE(
 
     signal input csca_tree_leaf;
 
-    signal input secret;
-    
     signal input linkNonce;
+    signal input nullifierNonce;
 
     signal output nullifier;
-    signal output commitment;
     signal output linkId;
 
     // assert only bytes are used in raw_dsc
@@ -153,9 +158,9 @@ template SIGNATURE(
         dsc_pubKey_actual_size
     );
 
-    // verify passport signature (without DG1 hash check)
+    // verify passport signature
     component passportVerifier = PassportVerifierSignature(
-        // DG_HASH_ALGO, - [dg1_removed]
+        DG_HASH_ALGO,
         ECONTENT_HASH_ALGO,
         signatureAlgorithm,
         n,
@@ -164,8 +169,10 @@ template SIGNATURE(
         MAX_SIGNED_ATTR_PADDED_LEN
     );
 
-    // passportVerifier.dg1 <== dg1; - [dg1_removed]
-    // passportVerifier.dg1_hash_offset <== dg1_hash_offset; - [dg1_removed]
+    passportVerifier.dg1_hash_bytes <== dg1_hash_bytes;
+    passportVerifier.dg1_hash_offset <== dg1_hash_offset;
+    passportVerifier.dg2_hash_bytes <== dg2_hash_bytes;
+    passportVerifier.dg2_hash_offset <== dg2_hash_offset;
     passportVerifier.eContent <== eContent;
     passportVerifier.eContent_padded_length <== eContent_padded_length;
     passportVerifier.signed_attr <== signed_attr;
@@ -174,18 +181,11 @@ template SIGNATURE(
     passportVerifier.pubKey_dsc <== pubKey_dsc;
     passportVerifier.signature_passport <== signature_passport;
 
-    nullifier <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
+    signal nullifierIntermediate <== PackBytesAndPoseidon(HASH_LEN_BYTES)(passportVerifier.signedAttrShaBytes);
+    nullifier <== Poseidon(2)([nullifierIntermediate, nullifierNonce]);
 
-    // generate commitment
-    // signal dg1_packed_hash <== PackBytesAndPoseidon(93)(dg1); [dg1_removed]
-    signal eContent_shaBytes_packed_hash <== PackBytesAndPoseidon(ECONTENT_HASH_ALGO_BYTES)(passportVerifier.eContentShaBytes);
-    
-    commitment <== Poseidon(5)([
-        secret,
-        attestation_id,
-        dg1_packed_hash,
-        eContent_shaBytes_packed_hash,
-        dsc_tree_leaf
-    ]);
-    linkId <== LinkID()(dg1_packed_hash, linkNonce);
+    signal dg1PackedHash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES)(dg1_hash_bytes);
+    signal dg2Hex[DG_HASH_ALGO_BYTES*2] <== DgHashToHex(DG_HASH_ALGO_BYTES)(dg2_hash_bytes);
+    signal poseidonDg2Hash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES * 2)(dg2Hex);
+    linkId <== LinkID()(dg1PackedHash, poseidonDg2Hash, linkNonce);
 }

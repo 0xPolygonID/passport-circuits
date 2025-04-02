@@ -44,7 +44,7 @@ build_circuit() {
     
     # Set circuit path based on CIRCUIT_TYPE
     local CIRCUIT_PATH
-    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] ; then
+    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] || [ "$CIRCUIT_TYPE" = "credential" ] ; then
         CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
     else
         CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
@@ -74,24 +74,24 @@ build_circuit() {
 
 
     echo -e "${BLUE}Building zkey${NC}"
-    NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs groth16 setup \
+    NODE_OPTIONS="--max-old-space-size=131072" yarn snarkjs groth16 setup \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs \
         build/powersOfTau28_hez_final_${POWEROFTAU}.ptau \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey
     
     # Generate and contribute random string
     local RAND_STR=$(get_random_string)
-    echo $RAND_STR | NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs zkey contribute \
+    echo $RAND_STR | NODE_OPTIONS="--max-old-space-size=131072" yarn snarkjs zkey contribute \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.zkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey
 
     echo -e "${BLUE}Building vkey${NC}"
-    NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs zkey export verificationkey \
+    NODE_OPTIONS="--max-old-space-size=131072" yarn snarkjs zkey export verificationkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_vkey.json
 
     # Generate and copy Solidity verifier
-    NODE_OPTIONS="--max-old-space-size=65520" yarn snarkjs zkey export solidityverifier \
+    NODE_OPTIONS="--max-old-space-size=131072" yarn snarkjs zkey export solidityverifier \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey \
         ${OUTPUT_DIR}/${CIRCUIT_NAME}/Verifier_${CIRCUIT_NAME}.sol
 

@@ -9,6 +9,11 @@
     "checkJs": false,
     "outDir": "./dist"
   },
-  "include": ["tests/**/*", "src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "tests/**/*",
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

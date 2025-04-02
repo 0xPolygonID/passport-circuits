@@ -5,7 +5,7 @@ export const COMMITMENT_TREE_DEPTH = 33;
 export const DEFAULT_USER_ID_TYPE = 'uuid';
 
 export const REDIRECT_URL = 'https://redirect.self.xyz';
-export const WS_RPC_URL_VC_AND_DISCLOSE = "ws://disclose.proving.self.xyz:8888/";
+export const WS_RPC_URL_VC_AND_DISCLOSE = 'ws://disclose.proving.self.xyz:8888/';
 export const WS_DB_RELAYER = 'wss://websocket.self.xyz';
 export const WS_DB_RELAYER_STAGING = 'wss://websocket.staging.self.xyz';
 export const API_URL = 'https://api.self.xyz';
@@ -22,7 +22,6 @@ export const CHAIN_NAME = 'celo';
 export const RPC_URL = 'https://forno.celo.org';
 export const PCR0_MANAGER_ADDRESS = '0xE36d4EE5Fd3916e703A46C21Bb3837dB7680C8B8';
 
-
 // we make it global here because passing it to generateCircuitInputsRegister caused trouble
 export const DEVELOPMENT_MODE = true;
 export const DEFAULT_MAJORITY = '18';
@@ -36,22 +35,52 @@ export const OFAC_TREE_LEVELS = 64;
 
 export const DEPLOYED_CIRCUITS_DSC = [
   'dsc_sha1_ecdsa_brainpoolP256r1',
-  'dsc_sha1_rsa_65537_4096',
   'dsc_sha256_ecdsa_brainpoolP256r1',
   'dsc_sha256_ecdsa_brainpoolP384r1',
   'dsc_sha256_ecdsa_secp256r1',
   'dsc_sha256_ecdsa_secp384r1',
+  'dsc_sha384_ecdsa_brainpoolP384r1',
+  'dsc_sha384_ecdsa_brainpoolP512r1',
+  'dsc_sha384_ecdsa_secp384r1',
+  'dsc_sha512_ecdsa_brainpoolP512r1',
+  'dsc_sha1_rsa_65537_4096',
   'dsc_sha256_rsa_65537_4096',
+  'dsc_sha512_rsa_65537_4096',
   'dsc_sha256_rsapss_3_32_3072',
   'dsc_sha256_rsapss_65537_32_3072',
   'dsc_sha256_rsapss_65537_32_4096',
-  'dsc_sha384_ecdsa_brainpoolP384r1',
-  //'dsc_sha384_ecdsa_brainpoolP512r1',
-  'dsc_sha384_ecdsa_secp384r1',
-  //'dsc_sha512_ecdsa_brainpoolP512r1',
-  'dsc_sha512_rsa_65537_4096',
   'dsc_sha512_rsapss_65537_64_4096',
-]
+];
+
+export const DEPLOYED_CIRCUITS_SIGNATURE = [
+  'signature_sha1_sha1_sha1_ecdsa_brainpoolP224r1',
+  'signature_sha224_sha224_sha224_ecdsa_brainpoolP224r1',
+  'signature_sha256_sha256_sha256_ecdsa_brainpoolP256r1',
+  'signature_sha256_sha256_sha256_ecdsa_brainpoolP384r1',
+  'signature_sha256_sha256_sha256_ecdsa_secp256r1',
+  'signature_sha256_sha256_sha256_ecdsa_secp384r1',
+  'signature_sha384_sha384_sha384_ecdsa_brainpoolP384r1',
+  'signature_sha384_sha384_sha384_ecdsa_brainpoolP512r1',
+  'signature_sha384_sha384_sha384_ecdsa_secp384r1',
+  'signature_sha512_sha512_sha512_ecdsa_brainpoolP512r1',
+  'signature_sha1_sha1_sha1_rsa_65537_4096',
+  'signature_sha1_sha256_sha256_rsa_65537_4096',
+  'signature_sha256_sha256_sha256_rsa_65537_4096',
+  'signature_sha512_sha512_sha512_rsa_65537_4096',
+  'signature_sha256_sha256_sha256_rsapss_3_32_2048',
+  'signature_sha256_sha256_sha256_rsapss_65537_32_2048',
+  'signature_sha256_sha256_sha256_rsapss_65537_32_3072',
+  'signature_sha384_sha384_sha384_rsapss_65537_48_2048',
+  'signature_sha512_sha512_sha512_rsapss_65537_64_2048',
+];
+
+export const DEPLOYED_CIRCUITS_CREDENTIAL = [
+  'credential_sha1',
+  'credential_sha224',
+  'credential_sha256',
+  'credential_sha384',
+  'credential_sha512',
+];
 
 export const MAX_PADDED_ECONTENT_LEN: Partial<Record<(typeof hashAlgos)[number], number>> = {
   sha1: 384,
@@ -83,7 +112,7 @@ export const MAX_CERT_BYTES: Partial<Record<keyof typeof SignatureAlgorithmIndex
 export const ECDSA_K_LENGTH_FACTOR = 2;
 // possible values because of sha1 constaints: 192,320,384, 448, 576, 640
 
-export const CIRCUIT_TYPES = ['dsc', 'vc_and_disclose']
+export const CIRCUIT_TYPES = ['dsc', 'vc_and_disclose'];
 export const circuitNameFromMode = {
   prove: 'prove',
   prove_onchain: 'prove',
@@ -112,7 +141,7 @@ export enum DscVerifierId {
   dsc_sha512_rsa_65537_4096 = 16,
   dsc_sha512_rsapss_65537_64_4096 = 17,
   dsc_sha256_rsapss_3_32_4096 = 18,
-};
+}
 
 export enum SignatureAlgorithmIndex {
   rsa_sha256_65537_2048 = 1,
@@ -168,18 +197,18 @@ export const circuitToSelectorMode = {
 };
 
 export const revealedDataTypes = {
-  'issuing_state': 0,
-  'name': 1,
-  'passport_number': 2,
-  'nationality': 3,
-  'date_of_birth': 4,
-  'gender': 5,
-  'expiry_date': 6,
-  'older_than': 7,
-  'passport_no_ofac': 8,
-  'name_and_dob_ofac': 9,
-  'name_and_yob_ofac': 10,
-}
+  issuing_state: 0,
+  name: 1,
+  passport_number: 2,
+  nationality: 3,
+  date_of_birth: 4,
+  gender: 5,
+  expiry_date: 6,
+  older_than: 7,
+  passport_no_ofac: 8,
+  name_and_dob_ofac: 9,
+  name_and_yob_ofac: 10,
+};
 
 export const CIRCUIT_CONSTANTS = {
   SIGNATURE_NULLIFIER_INDEX: 0,
@@ -200,7 +229,7 @@ export const CIRCUIT_CONSTANTS = {
   VC_AND_DISCLOSE_NAME_YOB_SMT_ROOT_INDEX: 18,
   VC_AND_DISCLOSE_SCOPE_INDEX: 19,
   VC_AND_DISCLOSE_USER_IDENTIFIER_INDEX: 20,
-}
+};
 
 export const MAX_BYTES_IN_FIELD = 31;
 export const MAX_PUBKEY_DSC_BYTES = 525;
@@ -304,7 +333,7 @@ export const countryCodes = {
   GMB: 'Gambia',
   GEO: 'Georgia',
   DEU: 'Germany',
-  "D<<": 'Germany', // Bundesrepublik Deutschland uses this in passports instead of DEU
+  'D<<': 'Germany', // Bundesrepublik Deutschland uses this in passports instead of DEU
   GHA: 'Ghana',
   GIB: 'Gibraltar',
   GRC: 'Greece',

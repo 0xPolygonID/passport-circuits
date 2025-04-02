@@ -14,18 +14,19 @@ import {
 import { getCurveForElliptic } from '../certificate_parsing/curves';
 import { formatAndConcatenateDataHashes, formatMrz } from './format';
 import { generateSignedAttr } from './format';
-import { initPassportDataParsing } from './passport';
+import { byteToHexNibbles, initPassportDataParsing } from './passport';
 
 function generateRandomBytes(length: number): number[] {
   // Generate numbers between -128 and 127 to match the existing signed byte format
   return Array.from({ length }, () => Math.floor(Math.random() * 256) - 128);
 }
 
-function generateDataGroupHashes(mrzHash: number[], hashLen: number): [number, number[]][] {
+function generateDataGroupHashes(mrzHash: number[], dg2Hash: number[], hashLen: number): [number, number[]][] {
   // Generate hashes for DGs 2-15 (excluding some DGs that aren't typically used)
   const dataGroups: [number, number[]][] = [
     [1, mrzHash], // DG1 must be the MRZ hash
-    [2, generateRandomBytes(hashLen)],
+    [2, dg2Hash], // DG2 is a fixed hash for testing
+    //[2, generateRandomBytes(hashLen)],
     [3, generateRandomBytes(hashLen)],
     [4, generateRandomBytes(hashLen)],
     [5, generateRandomBytes(hashLen)],
@@ -241,10 +242,15 @@ export function genMockPassportData(
   }
 
   // Generate MRZ hash first
-  const mrzHash = hash(dgHashAlgo, formatMrz(mrz));
+  const mrzHash = hash(dgHashAlgo, formatMrz(mrz)) as number[];
+  const dg2Hash = mrzHash;
 
   // Generate random hashes for other DGs, passing mrzHash for DG1
-  const dataGroupHashes = generateDataGroupHashes(mrzHash as number[], getHashLen(dgHashAlgo));
+  const dataGroupHashes = generateDataGroupHashes(
+    mrzHash as number[],
+    dg2Hash,
+    getHashLen(dgHashAlgo)
+  );
 
   const eContent = formatAndConcatenateDataHashes(dataGroupHashes, 63);
   const signedAttr = generateSignedAttr(hash(eContentHashAlgo, eContent) as number[]);
@@ -255,11 +261,13 @@ export function genMockPassportData(
   return initPassportDataParsing({
     dsc: dsc,
     mrz: mrz,
+    dg1Hash: dataGroupHashes.find(([dgNum]) => dgNum === 1)?.[1] || [],
     dg2Hash: dataGroupHashes.find(([dgNum]) => dgNum === 2)?.[1] || [],
+    dg2HashHex: byteToHexNibbles(dg2Hash),
     eContent: eContent,
     signedAttr: signedAttr,
     encryptedDigest: signatureBytes,
-    documentType: "mock_passport"
+    documentType: 'mock_passport',
   });
 }
 
