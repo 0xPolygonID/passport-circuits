@@ -37,9 +37,8 @@ template Integrity(hashAlgo) {
     7. Sex: Position 21, Size 1
     8. Date of expiry: Position 22, Size 6
 */
-template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
+template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input dg1[DG1_TD3_SIZE()];
-    signal input dg2Hash[hashSize]; // size([]bytes(hex)) we need we need to pass bytes as they are
     signal input lastNameSize;
     signal input firstNameSize;
     signal input currentDate; // Format: YYMMDD
@@ -55,65 +54,52 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     signal input templateRoot;
     signal input siblings[smtChanges][nLevels];
 
-    signal output documentCodeHash;
-    signal output documentIssuerHash;
-    signal output documentLastNameHash;
-    signal output documentFirstNameHash;
-    signal output documentNumberHash;
-    signal output documentNationalityHash;
-    signal output documentDOB;
-    signal output documentSexHash;
-    signal output documentDOE;
     signal output hashIndex;
     signal output hashValue;
     signal output linkId;
 
     component documentCodeExtractor = Extractor(DG1_TD3_SIZE(), documentCodePosition(), documentCodeSize());
     documentCodeExtractor.dg1 <== dg1;
-    documentCodeHash <== documentCodeExtractor.hash;
+    signal documentCodeHash <== documentCodeExtractor.hash;
 
     component documentIssuerExtractor = Extractor(DG1_TD3_SIZE(), issuingStatePosition(), issuingStateSize());
     documentIssuerExtractor.dg1 <== dg1;
-    documentIssuerHash <== documentIssuerExtractor.hash;
+    signal documentIssuerHash <== documentIssuerExtractor.hash;
 
     component lastNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
     lastNameExtractor.dg1 <== dg1;
     lastNameExtractor.start <== nameOfHolderPosition();
     lastNameExtractor.end <== lastNameSize;
-    documentLastNameHash <== lastNameExtractor.hash;
+    signal documentLastNameHash <== lastNameExtractor.hash;
 
     component firstNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
     firstNameExtractor.dg1 <== dg1;
     firstNameExtractor.start <== nameOfHolderPosition() + lastNameSize + 2;
     firstNameExtractor.end <== firstNameSize;
-    documentFirstNameHash <== firstNameExtractor.hash;
+    signal documentFirstNameHash <== firstNameExtractor.hash;
 
     component documentNumberExtractor = Extractor(DG1_TD3_SIZE(), documentNumberPosition(), documentNumberSize());
     documentNumberExtractor.dg1 <== dg1;
-    documentNumberHash <== documentNumberExtractor.hash;
+    signal documentNumberHash <== documentNumberExtractor.hash;
 
     component documentNationalityExtractor = Extractor(DG1_TD3_SIZE(), nationalityPosition(), nationalitySize());
     documentNationalityExtractor.dg1 <== dg1;
-    documentNationalityHash <== documentNationalityExtractor.hash;
+    signal documentNationalityHash <== documentNationalityExtractor.hash;
 
     component documentDOBExtractor = ExtractorDOB(DG1_TD3_SIZE(), dobPosition(), dobSize());
     documentDOBExtractor.dg1 <== dg1;
     documentDOBExtractor.currentDate <== currentDate;
-    documentDOB <== documentDOBExtractor.out;
+    signal documentDOB <== documentDOBExtractor.out;
 
     component documentSexExtractor = Extractor(DG1_TD3_SIZE(), sexPosition(), sexSize());
     documentSexExtractor.dg1 <== dg1;
-    documentSexHash <== documentSexExtractor.hash;
+    signal documentSexHash <== documentSexExtractor.hash;
 
     component documentDOEExtractor = ExtractorDOE(DG1_TD3_SIZE(), dateOfExpiryPosition(), dateOfExpirySize());
     documentDOEExtractor.dg1 <== dg1;
     documentDOEExtractor.currentDate <== currentDate;
-    documentDOE <== documentDOEExtractor.out;
+    signal documentDOE <== documentDOEExtractor.out;
     signal documentDOETimestamp <== documentDOEExtractor.timestamp;
-
-    component dg2HashHasher = PaddingAndPoseidon(hashSize);
-    dg2HashHasher.in <== dg2Hash;
-    signal poseidonDg2Hash <== dg2HashHasher.hash;
 
     // TODO (illia-korotia): move to separate circuit:
     var keysToUpdate[smtChanges] = [
@@ -131,8 +117,7 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
         8713837106709436881047310678745516714551061952618778897121563913918335939585, // issuanceDate.id
         5940025296598751562822259677636111513267244048295724788691376971035167813215, // issuer.id
         12721581730399791084220775389224758160887300573168177512619749567794685336757, // credentialSubject.nationalities
-        8420111610095993874869544651671831438228943062702729758375308097770323355054, // credentialSubject.nationalities
-        5174935119518540357656305431208837480424139947723235187406958318762813271623 // credentialSubject.customFields
+        8420111610095993874869544651671831438228943062702729758375308097770323355054 // credentialSubject.nationalities
     ];
 
     // issuanceDate and documentDOETimestamp are in UnixTimestamp format
@@ -155,7 +140,6 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     log(issuer);
     log(documentNationalityHash);
     log(documentIssuerHash);
-    log(poseidonDg2Hash);
     */
 
     var valuesToUpdate[smtChanges] = [
@@ -173,8 +157,7 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
         issuanceDate * 1000000000, // issuanceDate.id
         issuer, // issuer.id
         documentNationalityHash, // credentialSubject.nationalities
-        documentIssuerHash, // credentialSubject.nationalities
-        poseidonDg2Hash // credentialSubject.customFields.string3
+        documentIssuerHash // credentialSubject.nationalities
     ];
 
     component c = ClaimRootBuilder(nLevels, smtChanges);
@@ -208,5 +191,5 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     hashValue <== hV.out;
 
     signal poseidonDg1Hash <== Integrity(hashAlgo)(dg1);
-    linkId <== LinkID()(poseidonDg1Hash, poseidonDg2Hash, linkNonce);
+    linkId <== LinkID()(poseidonDg1Hash, linkNonce);
 }

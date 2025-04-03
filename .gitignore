@@ -1,3 +1,4 @@
+.vscode/
 inputs
 build/
 !scripts/build/
