@@ -29,8 +29,6 @@ include "./utils.circom";
 /// @input dsc_pubKey_actual_size Actual size of DSC public key
 /// @input dg1_hash_bytes Hash bytes of DG1
 /// @input dg1_hash_offset Offset for DG1 hash
-/// @input dg2_hash_bytes Hash bytes of DG2
-/// @inpit dg2_hash_offset Offset for DG2 hash
 /// @input eContent eContent data - contains all DG hashes
 /// @input eContent_padded_length Padded length of eContent
 /// @input signed_attr Signed attributes
@@ -81,8 +79,6 @@ template SIGNATURE(
 
     signal input dg1_hash_bytes[DG_HASH_ALGO_BYTES];
     signal input dg1_hash_offset;
-    signal input dg2_hash_bytes[DG_HASH_ALGO_BYTES];
-    signal input dg2_hash_offset;
 
     signal input eContent[MAX_ECONTENT_PADDED_LEN];
     signal input eContent_padded_length;
@@ -171,8 +167,6 @@ template SIGNATURE(
 
     passportVerifier.dg1_hash_bytes <== dg1_hash_bytes;
     passportVerifier.dg1_hash_offset <== dg1_hash_offset;
-    passportVerifier.dg2_hash_bytes <== dg2_hash_bytes;
-    passportVerifier.dg2_hash_offset <== dg2_hash_offset;
     passportVerifier.eContent <== eContent;
     passportVerifier.eContent_padded_length <== eContent_padded_length;
     passportVerifier.signed_attr <== signed_attr;
@@ -185,7 +179,5 @@ template SIGNATURE(
     nullifier <== Poseidon(2)([nullifierIntermediate, nullifierNonce]);
 
     signal dg1PackedHash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES)(dg1_hash_bytes);
-    signal dg2Hex[DG_HASH_ALGO_BYTES*2] <== DgHashToHex(DG_HASH_ALGO_BYTES)(dg2_hash_bytes);
-    signal poseidonDg2Hash <== PaddingAndPoseidon(DG_HASH_ALGO_BYTES * 2)(dg2Hex);
-    linkId <== LinkID()(dg1PackedHash, poseidonDg2Hash, linkNonce);
+    linkId <== LinkID()(dg1PackedHash, linkNonce);
 }

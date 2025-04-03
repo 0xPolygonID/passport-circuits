@@ -126,9 +126,7 @@ export function generateCircuitInputsSignature(
     dsc_pubKey_actual_size: [BigInt(keyLength).toString()],
     // Convert signed bytes to unsigned (0-255)
     dg1_hash_bytes: passportData.dg1Hash.map((byte) => (byte < 0 ? byte + 256 : byte)),
-    dg2_hash_bytes: passportData.dg2Hash.map((byte) => (byte < 0 ? byte + 256 : byte)),
     dg1_hash_offset: passportMetadata.dg1HashOffset,
-    dg2_hash_offset: passportMetadata.dg2HashOffset,
     eContent: eContentPadded,
     eContent_padded_length: eContentLen,
     signed_attr: signedAttrPadded,
