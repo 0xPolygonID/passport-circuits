@@ -6,14 +6,13 @@ include "circomlib/circuits/poseidon.circom";
 
 template LinkID() {
     signal input dg1Hash;
-    signal input dg2Hash;
     signal input linkNonce;
 
     signal output out;
 
     signal isNonceZero <== IsZero()(linkNonce);
 
-    signal linkID <== Poseidon(3)([dg1Hash, dg2Hash, linkNonce]);
+    signal linkID <== Poseidon(2)([dg1Hash, linkNonce]);
 
     out <== Mux1()(
         [linkID, 0],

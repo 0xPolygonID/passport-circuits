@@ -83,10 +83,9 @@ export function generateLinkId(passportData: PassportData, LinkNonce: string) {
   return Poseidon.spongeHashX(
     [
       Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
-      Poseidon.hashBytes(new Uint8Array(passportData.dg2HashHex)),
       BigInt(LinkNonce),
     ],
-    3
+    2
   ).toString();
 }
 

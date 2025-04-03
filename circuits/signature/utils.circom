@@ -1,16 +1,6 @@
 pragma circom 2.1.9;
 include "../utils/passport/constants.circom";
 
-template DgHashToHex(DG_HASH_ALGO_BYTES) {
-    signal input dg2_hash_bytes[DG_HASH_ALGO_BYTES];
-    signal output hex_bytes[DG_HASH_ALGO_BYTES * 2];
-
-    for (var i = 0; i < DG_HASH_ALGO_BYTES; i++) {
-        hex_bytes[i * 2] <-- dg2_hash_bytes[i] \ 16;
-        hex_bytes[i * 2 + 1] <-- dg2_hash_bytes[i] % 16;
-    }
-}
-
 template PaddingAndPoseidon(fieldSize) {
     signal input in[fieldSize];
     signal output hash;
