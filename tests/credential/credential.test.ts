@@ -52,7 +52,6 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     '5940025296598751562822259677636111513267244048295724788691376971035167813215', '0', // issuer.id
     '12721581730399791084220775389224758160887300573168177512619749567794685336757', '0', // credentialSubject.nationalities
     '8420111610095993874869544651671831438228943062702729758375308097770323355054', '0', // credentialSubject.nationalities
-    '5174935119518540357656305431208837480424139947723235187406958318762813271623', '0', // credentialSubject.customFields.string3
   ];
   for (let i = 0; i < template.length; i += 2) {
     const key = tree.F.e(template[i]);
@@ -77,7 +76,6 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
     '5940025296598751562822259677636111513267244048295724788691376971035167813215', '12146166192964646439780403715116050536535442384123009131510511003232108502337', // issuer.id
     '12721581730399791084220775389224758160887300573168177512619749567794685336757', '14193146200435563417722817655626671239476419932450502386457224894805250323461', // credentialSubject.nationalities
     '8420111610095993874869544651671831438228943062702729758375308097770323355054', '14193146200435563417722817655626671239476419932450502386457224894805250323461', // credentialSubject.nationalities
-    '5174935119518540357656305431208837480424139947723235187406958318762813271623', '9966332195319259765266445177016037537993267892018038146457505167974530030333', // credentialSubject.customFields.string3
   ];
   const siblings = [[]];
   for (let i = 0; i < updateTemplate.length; i += 2) {
@@ -92,7 +90,6 @@ async function prepareTestData(mrz: string, lastNameSize: number, firstNameSize:
 
   return {
     dg1: [...mrzByteArray],
-    dg2Hash: [... new TextEncoder().encode('88328f6e5066315192a573911a6f33081da50fd51397af13edb3d7badbb59f98')],
     lastNameSize: lastNameSize,
     firstNameSize: firstNameSize,
     currentDate: 250401,
@@ -151,7 +148,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       await circuit.checkConstraints(w);
       // Hash Index
       assert(
-        w[1] === 17776132232384982104536185118045964364857471284992795983125459099864510185953n,
+        w[1] === 12540426411710453760151393601170235972829881381898755539806736392337874991081n,
         `Hash Index: ${w[1]}`
       );
 
@@ -164,60 +161,15 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       const linkId = Poseidon.spongeHashX(
         [
           Poseidon.hashBytes(new Uint8Array(passportData.dg1Hash)),
-          Poseidon.hashBytes(new Uint8Array(inputs.dg2Hash)),
           BigInt(inputs.linkNonce),
         ],
-        3
+        2
       );
       assert(w[3] === linkId);
 
       // Compare template root
-      assert(w[6] === 11355012832755671330307538002239263753806804904003813746452342893352381210514n);
+      assert(w[6] === 3532467563022391950170321692541635800576371972220969617740093781820662149190n);
     });
-    /*
-  it(`Double last name`, async function() {
-    const {mrz, surnameSize, givenNamesSize} = generateMRZ(
-      "P",
-      "UKR",
-      "KUZNETSOV",
-      "VALERIY",
-      "AC1234567",
-      "UKR",
-      "960309",
-      "M",
-      "350803",
-    );
-    const inputs = await prepareTestData(docs, 11, 8);
-    const w = await circuit.calculateWitness(inputs, true);
-    await circuit.checkConstraints(w);
-    // Document code hash (output 1)
-    assert(w[1] === 12343105779965610540047025345938704312955329035594806470260411576419571786879n);
-
-    // Issuing State or organization hash (output 2)
-    assert(w[2] === 14193146200435563417722817655626671239476419932450502386457224894805250323461n);
-
-    // Last name hash (output 3)
-    assert(w[3] === 16684418381729930583844995012712504418990732401801825107387099797112025696324n);
-
-    // First name hash (output 4)
-    assert(w[4] === 7882444430312531813986531690355256034187461560449276183886474511877560234822n);
-
-    // Document number hash (output 5)
-    assert(w[5] === 13365184592845315309100297120259965838903705444844448460767566282483182375642n);
-
-    // Nationality hash (output 6)
-    assert(w[6] === 14193146200435563417722817655626671239476419932450502386457224894805250323461n);
-
-    // Date of Birth hash (output 7)
-    assert(w[7] === 19980309n);
-
-    // Sex hash (output 8)
-    assert(w[8] === 4366613503740245542741816499068547859478657796760861141829344679607332353738n);
-
-    // Date of expiry hash (output 9)
-    assert(w[9] === 20310803n);
-  });
-  */
   });
 });
 

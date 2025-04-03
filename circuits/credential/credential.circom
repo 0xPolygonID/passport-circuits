@@ -37,9 +37,8 @@ template Integrity(hashAlgo) {
     7. Sex: Position 21, Size 1
     8. Date of expiry: Position 22, Size 6
 */
-template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
+template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input dg1[DG1_TD3_SIZE()];
-    signal input dg2Hash[hashSize]; // size([]bytes(hex)) we need we need to pass bytes as they are
     signal input lastNameSize;
     signal input firstNameSize;
     signal input currentDate; // Format: YYMMDD
@@ -102,10 +101,6 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     signal documentDOE <== documentDOEExtractor.out;
     signal documentDOETimestamp <== documentDOEExtractor.timestamp;
 
-    component dg2HashHasher = PaddingAndPoseidon(hashSize);
-    dg2HashHasher.in <== dg2Hash;
-    signal poseidonDg2Hash <== dg2HashHasher.hash;
-
     // TODO (illia-korotia): move to separate circuit:
     var keysToUpdate[smtChanges] = [
         4817156672888655522763064392525239094511187154831557262772815264540847425378, // credentialSubject.dateOfBirth
@@ -122,8 +117,7 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
         8713837106709436881047310678745516714551061952618778897121563913918335939585, // issuanceDate.id
         5940025296598751562822259677636111513267244048295724788691376971035167813215, // issuer.id
         12721581730399791084220775389224758160887300573168177512619749567794685336757, // credentialSubject.nationalities
-        8420111610095993874869544651671831438228943062702729758375308097770323355054, // credentialSubject.nationalities
-        5174935119518540357656305431208837480424139947723235187406958318762813271623 // credentialSubject.customFields
+        8420111610095993874869544651671831438228943062702729758375308097770323355054 // credentialSubject.nationalities
     ];
 
     // issuanceDate and documentDOETimestamp are in UnixTimestamp format
@@ -146,7 +140,6 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     log(issuer);
     log(documentNationalityHash);
     log(documentIssuerHash);
-    log(poseidonDg2Hash);
     */
 
     var valuesToUpdate[smtChanges] = [
@@ -164,8 +157,7 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
         issuanceDate * 1000000000, // issuanceDate.id
         issuer, // issuer.id
         documentNationalityHash, // credentialSubject.nationalities
-        documentIssuerHash, // credentialSubject.nationalities
-        poseidonDg2Hash // credentialSubject.customFields.string3
+        documentIssuerHash // credentialSubject.nationalities
     ];
 
     component c = ClaimRootBuilder(nLevels, smtChanges);
@@ -199,5 +191,5 @@ template DG1FieldParser(hashAlgo, hashSize, nLevels, smtChanges) {
     hashValue <== hV.out;
 
     signal poseidonDg1Hash <== Integrity(hashAlgo)(dg1);
-    linkId <== LinkID()(poseidonDg1Hash, poseidonDg2Hash, linkNonce);
+    linkId <== LinkID()(poseidonDg1Hash, linkNonce);
 }
