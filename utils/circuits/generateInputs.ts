@@ -202,8 +202,6 @@ export async function generateCircuitInputsCredential(passportData: PassportData
     '0', // credentialSubject.nationalities
     '8420111610095993874869544651671831438228943062702729758375308097770323355054',
     '0', // credentialSubject.nationalities
-    '5174935119518540357656305431208837480424139947723235187406958318762813271623',
-    '0', // credentialSubject.customFields.string3
   ];
   for (let i = 0; i < template.length; i += 2) {
     const key = tree.F.e(template[i]);
@@ -246,8 +244,6 @@ export async function generateCircuitInputsCredential(passportData: PassportData
     '14193146200435563417722817655626671239476419932450502386457224894805250323461', // credentialSubject.nationalities
     '8420111610095993874869544651671831438228943062702729758375308097770323355054',
     '14193146200435563417722817655626671239476419932450502386457224894805250323461', // credentialSubject.nationalities
-    '5174935119518540357656305431208837480424139947723235187406958318762813271623',
-    '9966332195319259765266445177016037537993267892018038146457505167974530030333', // credentialSubject.customFields.string3
   ];
   const siblings = [[]];
   for (let i = 0; i < updateTemplate.length; i += 2) {
@@ -265,7 +261,6 @@ export async function generateCircuitInputsCredential(passportData: PassportData
 
   return {
     dg1: [...mrzByteArray],
-    dg2Hash: passportData.dg2HashHex,
     lastNameSize: lastNameSize,
     firstNameSize: firstNameSize,
     currentDate: currentDate,

@@ -87,8 +87,8 @@ files_credential_circuit() {
     cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_final.zkey \
         ${S3_DIR}/credential-keys/${CIRCUIT_NAME}/circuit_final.zkey
 
-    cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm \
-        ${S3_DIR}/credential-keys/${CIRCUIT_NAME}/circuit.wasm
+    # cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm \
+    #     ${S3_DIR}/credential-keys/${CIRCUIT_NAME}/circuit.wasm
 
     cp ${BUILD_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_vkey.json \
         ${S3_DIR}/credential-keys/${CIRCUIT_NAME}/verification_vkey.json
