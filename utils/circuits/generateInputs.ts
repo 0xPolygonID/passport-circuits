@@ -81,14 +81,13 @@ export function generateCircuitInputsSignature(
   serializedDscTree: string,
   nullifierNonce: number
 ) {
-  const { mrz, eContent, signedAttr } = passportData;
+  const { eContent, signedAttr } = passportData;
   const passportMetadata = passportData.passportMetadata;
   const dscParsed = passportData.dsc_parsed;
 
   const [dscTbsBytesPadded] = pad(dscParsed.hashAlgorithm)(dscParsed.tbsBytes, max_dsc_bytes);
 
   const { pubKey, signature, signatureAlgorithmFullName } = getPassportSignatureInfos(passportData);
-  const mrz_formatted = formatMrz(mrz);
 
   if (eContent.length > MAX_PADDED_ECONTENT_LEN[signatureAlgorithmFullName]) {
     console.error(
