@@ -13,14 +13,17 @@ BUILD_DIR="build/${CIRCUIT_TYPE}"
 CIRCUITS=(
     # ECDSA circuits
     "dsc_sha1_ecdsa_brainpoolP256r1"
+    "dsc_sha1_ecdsa_secp256r1"
     "dsc_sha256_ecdsa_brainpoolP256r1"
     "dsc_sha256_ecdsa_brainpoolP384r1"
     "dsc_sha256_ecdsa_secp256r1"
     "dsc_sha256_ecdsa_secp384r1"
+    "dsc_sha256_ecdsa_secp521r1"
     "dsc_sha384_ecdsa_brainpoolP384r1"
     "dsc_sha384_ecdsa_brainpoolP512r1"
     "dsc_sha384_ecdsa_secp384r1"
     "dsc_sha512_ecdsa_brainpoolP512r1"
+    "dsc_sha512_ecdsa_secp521r1"
 
     # RSA circuits
     "dsc_sha1_rsa_65537_4096"

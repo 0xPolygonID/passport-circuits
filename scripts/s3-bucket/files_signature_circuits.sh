@@ -13,7 +13,9 @@ BUILD_DIR="build/${CIRCUIT_TYPE}"
 CIRCUITS=(
     # ECDSA circuits
     "signature_sha1_sha1_sha1_ecdsa_brainpoolP224r1"
+    "signature_sha1_sha1_sha1_ecdsa_secp256r1"
     "signature_sha224_sha224_sha224_ecdsa_brainpoolP224r1"
+    "signature_sha256_sha224_sha224_ecdsa_secp224r1"
     "signature_sha256_sha256_sha256_ecdsa_brainpoolP256r1"
     "signature_sha256_sha256_sha256_ecdsa_brainpoolP384r1"
     "signature_sha256_sha256_sha256_ecdsa_secp256r1"
@@ -22,11 +24,14 @@ CIRCUITS=(
     "signature_sha384_sha384_sha384_ecdsa_brainpoolP512r1"
     "signature_sha384_sha384_sha384_ecdsa_secp384r1"
     "signature_sha512_sha512_sha512_ecdsa_brainpoolP512r1"
+    "signature_sha512_sha512_sha512_ecdsa_secp521r1"
     
     # RSA circuits
     "signature_sha1_sha1_sha1_rsa_65537_4096"
     "signature_sha1_sha256_sha256_rsa_65537_4096"
     "signature_sha256_sha256_sha256_rsa_65537_4096"
+    "signature_sha256_sha256_sha256_rsa_3_4096"
+    "signature_sha512_sha512_sha256_rsa_65537_4096"
     "signature_sha512_sha512_sha512_rsa_65537_4096"
 
     # RSA-PSS circuits
