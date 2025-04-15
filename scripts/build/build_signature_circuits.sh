@@ -3,9 +3,10 @@
 source "scripts/build/common.sh"
 
 # Circuit-specific configurations
+CURR_DIR=$(pwd)
 CIRCUIT_TYPE="signature"
-OUTPUT_DIR="build/${CIRCUIT_TYPE}"
-PACKAGE_DIR="package/${CIRCUIT_TYPE}"
+OUTPUT_DIR="${CURR_DIR}/build/${CIRCUIT_TYPE}"
+PACKAGE_DIR="${CURR_DIR}/package/${CIRCUIT_TYPE}"
 
 # Define circuits and their configurations
 # format: name:poweroftau:build_flag
@@ -30,7 +31,7 @@ CIRCUITS=(
     # "signature_sha1_sha1_sha1_rsa_65537_2048:20:false" # Instance not found
     "signature_sha1_sha256_sha256_rsa_65537_4096:20:false"
     # "signature_sha256_sha256_sha256_rsa_65537_3072:20:false" # Instance not found
-    "signature_sha256_sha256_sha256_rsa_65537_4096:20:false"
+    "signature_sha256_sha256_sha256_rsa_65537_4096:20:true"
     "signature_sha256_sha256_sha256_rsa_3_4096:20:false"
     "signature_sha512_sha512_sha256_rsa_65537_4096:21:false"
     "signature_sha512_sha512_sha512_rsa_65537_4096:21:false"
@@ -44,4 +45,5 @@ CIRCUITS=(
     "signature_sha512_sha512_sha512_rsapss_65537_64_2048:22:false"
 )
 
-build_circuits "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 
+build_circuits "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}"
+build_circuit_graphs "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "$CURR_DIR" "${CIRCUITS[@]}" 

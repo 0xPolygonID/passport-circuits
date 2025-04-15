@@ -157,3 +157,58 @@ build_circuits() {
 
     echo -e "${GREEN}Total completed in $(($(date +%s) - TOTAL_START_TIME)) seconds${NC}"
 }
+
+build_circuit_graph() {
+    local CIRCUIT_NAME=$1
+    local CIRCUIT_TYPE=$2
+    local OUTPUT_DIR=$3
+    local CURR_DIR=$4
+    local START_TIME=$(date +%s)
+
+    echo -e "${BLUE}Compiling circuit: $CIRCUIT_NAME${NC}"
+    
+    # Create output directory
+    mkdir -p ${OUTPUT_DIR}/${CIRCUIT_NAME}/
+    
+    # Set circuit path based on CIRCUIT_TYPE
+    local CIRCUIT_PATH
+    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] || [ "$CIRCUIT_TYPE" = "credential" ] ; then
+        CIRCUIT_PATH="${CURR_DIR}/circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
+    else
+        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
+    fi
+    
+    local circuit_graph_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_graph.wcd"
+	local witness_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.wtns"
+	local proof_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_proof.json"
+	local public_signals_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_public.json"
+	local r1cs_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}.r1cs"
+
+    cd circom-witnesscalc
+    cargo build --release
+    time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" -l ${CURR_DIR}/node_modules -l ${CURR_DIR}/node_modules/@openpassport -l ${CURR_DIR}/node_modules/circomlib/circuits
+}
+
+build_circuit_graphs() {
+    local CIRCUITS=("$@")
+    local CIRCUIT_TYPE="$1"
+    local OUTPUT_DIR="$2"
+    local PACKAGE_DIR="$3"
+    local CURR_DIR="$4"
+    shift 2 
+    local TOTAL_START_TIME=$(date +%s)
+
+    # Build circuits
+    for circuit in "${CIRCUITS[@]}"; do
+        IFS=':' read -r CIRCUIT_NAME POWEROFTAU BUILD_FLAG <<< "$circuit"
+        if [ "$BUILD_FLAG" = "true" ]; then
+            # Build circuit
+            echo -e "${BLUE}Building circuit graph $CIRCUIT_NAME${NC}"
+            build_circuit_graph "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$CURR_DIR"
+        else
+            echo -e "${GRAY}Skipping build for $CIRCUIT_NAME${NC}"
+        fi
+    done
+
+    echo -e "${GREEN}Total completed in $(($(date +%s) - TOTAL_START_TIME)) seconds${NC}"
+}
