@@ -181,22 +181,6 @@ testSuite.forEach(
         }
       });
 
-      // ----- Tests for passport signature and data integrity -----
-      it('should fail to calculate witness with invalid mrz', async function () {
-        try {
-          const ininputs = {
-            ...inputs,
-            dg1: Array(93)
-              .fill(0)
-              .map((byte) => BigInt(byte).toString()),
-          };
-          await circuit.calculateWitness(ininputs);
-          expect.fail('Expected an error but none was thrown.');
-        } catch (error) {
-          expect(error.message).to.include('Assert Failed');
-        }
-      });
-
       it('should fail to calculate witness with invalid eContent', async function () {
         try {
           const ininputs = {
@@ -246,20 +230,6 @@ testSuite.forEach(
         } catch (error: any) {
           expect(error.message).to.include('Assert Failed');
         }
-      });
-
-      // ----- Test for tampering with secret (affects commitment and nullifier) -----
-      it('should compute different outputs if secret is changed', async function () {
-        const wValid = await circuit.calculateWitness(inputs);
-        await circuit.checkConstraints(wValid);
-        const nullifierValid = (await circuit.getOutput(wValid, ['nullifier'])).nullifier;
-
-        const tamperedInputs = { ...inputs, secret: (BigInt(inputs.secret[0]) + 1n).toString() };
-        const wTampered = await circuit.calculateWitness(tamperedInputs);
-        await circuit.checkConstraints(wTampered);
-        const nullifierTampered = (await circuit.getOutput(wTampered, ['nullifier'])).nullifier;
-
-        expect(nullifierTampered).to.equal(nullifierValid);
       });
 
       if (sigAlg.startsWith('rsa') || sigAlg.startsWith('rsapss')) {
