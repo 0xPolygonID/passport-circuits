@@ -68,7 +68,7 @@ testSuite.forEach(
         expect(circuit).to.not.be.undefined;
       });
 
-      it.only('should calculate the witness with correct inputs, and have the right nullifier', async function () {
+      it('should calculate the witness with correct inputs, and have the right nullifier', async function () {
         const w = await circuit.calculateWitness(inputs);
         await circuit.checkConstraints(w);
 

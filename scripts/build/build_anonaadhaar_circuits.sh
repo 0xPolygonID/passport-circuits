@@ -2,24 +2,23 @@
 
 source "scripts/build/common.sh"
 
+# Siquence of dependencies is important
+# If two libraries provide the same function, the first one will be used
+# and the second one will be ignored
+libs() {
+    echo "scripts/build/deps node_modules"
+}
+
 # Circuit-specific configurations
 CURR_DIR=$(pwd)
-CIRCUIT_TYPE="credential"
+CIRCUIT_TYPE="anonAadhaarV1"
 OUTPUT_DIR="${CURR_DIR}/build/${CIRCUIT_TYPE}"
 PACKAGE_DIR="${CURR_DIR}/package/${CIRCUIT_TYPE}"
-
-libs() {
-    echo "node_modules node_modules/@openpassport node_modules/circomlib/circuits"
-}
 
 # Define circuits and their configurations
 # format: name:poweroftau:build_flag
 CIRCUITS=(
-    "credential_sha1:20:false"
-    "credential_sha224:20:false"
-    "credential_sha256:20:true"
-    "credential_sha384:20:false"
-    "credential_sha512:20:false"
+    "anonAadhaarV1:22:true"
 )
 
 LIBS=$(libs)

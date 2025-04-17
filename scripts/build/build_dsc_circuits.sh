@@ -7,6 +7,10 @@ CIRCUIT_TYPE="dsc"
 OUTPUT_DIR="build/${CIRCUIT_TYPE}"
 PACKAGE_DIR="package/${CIRCUIT_TYPE}"
 
+libs() {
+    echo "node_modules node_modules/@zk-kit/binary-merkle-root.circom/src node_modules/circomlib/circuits"
+}
+
 # Define circuits and their configurations
 # format: name:poweroftau:build_flag
 CIRCUITS=(
@@ -37,4 +41,5 @@ CIRCUITS=(
     "dsc_sha512_rsapss_65537_64_4096:23:false"
 )
 
-build_circuits "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "${CIRCUITS[@]}" 
+LIBS=$(libs)
+build_circuits "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$PACKAGE_DIR" "$LIBS" "${CIRCUITS[@]}" 
