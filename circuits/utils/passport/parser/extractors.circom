@@ -8,20 +8,27 @@ include "../../iden3/poseidon.circom";
 include "circomlib/circuits/comparators.circom";
 include "@openpassport/zk-email-circuits/utils/array.circom";
 
-template Extractor(dg1Size, shift, fieldSize) {
+template FieldExtractor(dg1Size, shift, fieldSize) {
     signal input dg1[dg1Size];
-    signal output hash;
+    signal output field[fieldSize];
 
-    signal field[fieldSize];
     component eq[fieldSize];
-    // TODO (illia-korotia): we can rewrite this for to separate template
-    // and pass from symbol to symbol
     for (var i = 0; i < fieldSize; i++) {
         eq[i] = IsEqual();
         eq[i].in[0] <== dg1[shift + i];
         eq[i].in[1] <== dg1DelimiterSymbol();
         field[i] <== (1 - eq[i].out) * dg1[shift + i];
     }
+}
+
+template Extractor(dg1Size, shift, fieldSize) {
+    signal input dg1[dg1Size];
+    signal output hash;
+
+    signal field[fieldSize];
+    component fieldExtractor = FieldExtractor(dg1Size, shift, fieldSize);
+    fieldExtractor.dg1 <== dg1;
+    field <== fieldExtractor.field;
 
     component pap = PaddingAndPoseidon(fieldSize);
     pap.in <== field;
@@ -64,15 +71,9 @@ template ExtractorDOB(dg1Size, shift, fieldSize) {
     signal output out;
 
     signal field[fieldSize];
-    component eq[fieldSize];
-    // TODO (illia-korotia): we can rewrite this for to separate template
-    // and pass from symbol to symbol
-    for (var i = 0; i < fieldSize; i++) {
-        eq[i] = IsEqual();
-        eq[i].in[0] <== dg1[shift + i];
-        eq[i].in[1] <== dg1DelimiterSymbol();
-        field[i] <== (1 - eq[i].out) * dg1[shift + i];
-    }
+    component fieldExtractor = FieldExtractor(dg1Size, shift, fieldSize);
+    fieldExtractor.dg1 <== dg1;
+    field <== fieldExtractor.field;
 
     component dateInt = DigitBytesToInt(fieldSize);
     dateInt.in <== field;
@@ -93,15 +94,9 @@ template ExtractorDOE(dg1Size, shift, fieldSize) {
     signal output timestamp;
 
     signal field[fieldSize];
-    component eq[fieldSize];
-    // TODO (illia-korotia): we can rewrite this for to separate template
-    // and pass from symbol to symbol
-    for (var i = 0; i < fieldSize; i++) {
-        eq[i] = IsEqual();
-        eq[i].in[0] <== dg1[shift + i];
-        eq[i].in[1] <== dg1DelimiterSymbol();
-        field[i] <== (1 - eq[i].out) * dg1[shift + i];
-    }
+    component fieldExtractor = FieldExtractor(dg1Size, shift, fieldSize);
+    fieldExtractor.dg1 <== dg1;
+    field <== fieldExtractor.field;
 
     component dateInt = DigitBytesToInt(fieldSize);
     dateInt.in <== field;

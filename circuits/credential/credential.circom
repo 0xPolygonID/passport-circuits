@@ -10,6 +10,7 @@ include "../utils/iden3/claimbuilder.circom";
 include "../utils/iden3/bytes.circom";
 include "../utils/iden3/linkId.circom";
 include "../utils/iden3/poseidon.circom";
+include "../utils/iden3/constants.circom";
 
 include "circomlib/circuits/poseidon.circom";
 
@@ -39,8 +40,7 @@ template Integrity(hashAlgo) {
 */
 template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input dg1[DG1_TD3_SIZE()];
-    signal input lastNameSize;
-    signal input firstNameSize;
+    signal input holderNameSize;
     signal input currentDate; // Format: YYMMDD
 
     signal input revocationNonce;
@@ -66,17 +66,11 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     documentIssuerExtractor.dg1 <== dg1;
     signal documentIssuerHash <== documentIssuerExtractor.hash;
 
-    component lastNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
-    lastNameExtractor.dg1 <== dg1;
-    lastNameExtractor.start <== nameOfHolderPosition();
-    lastNameExtractor.end <== lastNameSize;
-    signal documentLastNameHash <== lastNameExtractor.hash;
-
-    component firstNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
-    firstNameExtractor.dg1 <== dg1;
-    firstNameExtractor.start <== nameOfHolderPosition() + lastNameSize + 2;
-    firstNameExtractor.end <== firstNameSize;
-    signal documentFirstNameHash <== firstNameExtractor.hash;
+    component holderNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
+    holderNameExtractor.dg1 <== dg1;
+    holderNameExtractor.start <== nameOfHolderPosition();
+    holderNameExtractor.end <== holderNameSize;
+    signal holderNameHash <== holderNameExtractor.hash;
 
     component documentNumberExtractor = Extractor(DG1_TD3_SIZE(), documentNumberPosition(), documentNumberSize());
     documentNumberExtractor.dg1 <== dg1;
@@ -101,23 +95,22 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal documentDOE <== documentDOEExtractor.out;
     signal documentDOETimestamp <== documentDOEExtractor.timestamp;
 
-    // TODO (illia-korotia): move to separate circuit:
     var keysToUpdate[smtChanges] = [
-        4817156672888655522763064392525239094511187154831557262772815264540847425378, // credentialSubject.dateOfBirth
-        2661316897620170050641842010022238582485958559445913964628121513401804945508, // credentialSubject.documentExpirationDate
-        17812501853592608022106438142029031484125620705472224666715824544873239913147, // credentialSubject.firstName
-        643493878926457766162531104335565260785288743937125657511062755781004518297, // credentialSubject.fullName
-        5768075745493428917651844471684022554030750947591103713762344570867180513614, // credentialSubject.governmentIdentifier
-        12037662945351652395520680282306597407040165994104304811455681806232413956620, // credentialSubject.governmentIdentifierType
-        16829829523990922339853122033176330960757159233571217495904710638791793740933, // credentialSubject.sex
-        18652354674254268839450839640508993614932212252620036777561285260846450401086, // credentialStatus.revocationNonce
-        11896622783611378286548274235251973588039499084629981048616800443645803129554, // credentialStatus.id
-        4792130079462681165428511201253235850015648352883240577315026477780493110675, // credentialSubject.id
-        13483382060079230067188057675928039600565406666878111320562435194759310415773, // expirationDate.id
-        8713837106709436881047310678745516714551061952618778897121563913918335939585, // issuanceDate.id
-        5940025296598751562822259677636111513267244048295724788691376971035167813215, // issuer.id
-        12721581730399791084220775389224758160887300573168177512619749567794685336757, // credentialSubject.nationalities
-        8420111610095993874869544651671831438228943062702729758375308097770323355054 // credentialSubject.nationalities
+        GetDateOfBirth(), // credentialSubject.dateOfBirth
+        GetDocumentExpirationDate(), // credentialSubject.documentExpirationDate
+        GetFirstName(), // credentialSubject.firstName
+        GetFullName(), // credentialSubject.fullName
+        GetGovernmentIdentifier(), // credentialSubject.governmentIdentifier
+        GetGovernmentIdentifierType(), // credentialSubject.governmentIdentifierType
+        GetSex(), // credentialSubject.sex
+        GetRevocationNonce(), // credentialStatus.revocationNonce
+        GetCredentialStatusID(), // credentialStatus.id
+        GetCredentialSubjectID(), // credentialSubject.id
+        GetExpirationDate(), // expirationDate.id
+        GetIssuanceDate(), // issuanceDate.id
+        GetIssuer(), // issuer.id
+        GetDocumentNationality(), // credentialSubject.nationalities
+        GetDocumentIssuer() // credentialSubject.nationalities
     ];
 
     // issuanceDate and documentDOETimestamp are in UnixTimestamp format
@@ -127,8 +120,8 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     // For debuging mt update
     log(documentDOB);
     log(documentDOE); // expiration date in format YYYYMMDD == passport mrz
-    log(documentFirstNameHash);
-    log(documentLastNameHash);
+    log(holderNameHash);
+    log(holderNameHash);
     log(documentNumberHash);
     log(documentCodeHash);
     log(documentSexHash);
@@ -145,8 +138,8 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     var valuesToUpdate[smtChanges] = [
         documentDOB, // credentialSubject.dateOfBirth
         documentDOE, // credentialSubject.documentExpirationDate
-        documentFirstNameHash, // credentialSubject.firstName
-        documentLastNameHash, // credentialSubject.fullName
+        holderNameHash, // credentialSubject.firstName
+        holderNameHash, // credentialSubject.fullName
         documentNumberHash, // credentialSubject.govermentIdentifier
         documentCodeHash, // credentialSubject.governmentIdentifierType
         documentSexHash, // credentialSubject.sex
