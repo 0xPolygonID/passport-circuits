@@ -1,5 +1,21 @@
 pragma circom 2.1.9;
 
+function MAX_BYTES_IN_FIELD() {
+    return 31;
+}
+
+function computeIntChunkLength(byteLength) {
+    var packSize = MAX_BYTES_IN_FIELD();
+
+    var remain = byteLength % packSize;
+    var numChunks = (byteLength - remain) / packSize;
+    if (remain > 0) {
+        numChunks += 1;
+    }
+
+    return numChunks;
+}
+
 template PackBytes(maxBytes) {
     var packSize = MAX_BYTES_IN_FIELD();
     var maxInts = computeIntChunkLength(maxBytes);

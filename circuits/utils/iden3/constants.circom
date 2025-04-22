@@ -1,0 +1,99 @@
+pragma circom 2.1.9;
+
+/* V0WithBasicPersonSchemaV1_43 provides information about V0.
+V0 struct:
+ i_0: [ 128  bits ] claim schema
+      [ 32 bits ] option flags
+          [3] Subject:
+            000: A.1 Self
+            001: invalid
+            010: A.2.i OtherIden Index  / 10
+            011: A.2.v OtherIden Value / 2
+            100: B.i Object Index
+            101: B.v Object Value
+          [1] Expiration: bool
+          [1] Updatable: bool
+          [3] Merklized: data is merklized root is stored in the:
+            000: none
+            001: C.i Root Index (root located in i_2) // 049jfgoisjfio03u21083ldsfhoh
+            010: C.v Root Value (root located in v_2)
+          [24] 0
+This bigInt represents the next data:
+    schemaHash('BasicPersonSchemaV1_43')
+    subjectPosition(index)
+    expiration(true)
+    updatable(false)
+    merklizedRootPosition(index)
+    version(0)
+*/
+function V0WithBasicPersonSchemaV1_43() {
+    return 14586288774771787882356214884390414373502;
+}
+
+function GetDateOfBirth() {
+    return 4817156672888655522763064392525239094511187154831557262772815264540847425378;
+}
+
+function GetDocumentExpirationDate() {
+    return 2661316897620170050641842010022238582485958559445913964628121513401804945508;
+}
+
+function GetFirstName() {
+    return 17812501853592608022106438142029031484125620705472224666715824544873239913147;
+}
+
+function GetFullName() {
+    return 643493878926457766162531104335565260785288743937125657511062755781004518297;
+}
+
+function GetGovernmentIdentifier() {
+    return 5768075745493428917651844471684022554030750947591103713762344570867180513614;
+}
+
+function GetGovernmentIdentifierType() {
+    return 12037662945351652395520680282306597407040165994104304811455681806232413956620;
+}
+
+function GetSex() {
+    return 16829829523990922339853122033176330960757159233571217495904710638791793740933;
+}
+
+function GetRevocationNonce() {
+    return 18652354674254268839450839640508993614932212252620036777561285260846450401086;
+}
+
+function GetCredentialStatusID() {
+    return 11896622783611378286548274235251973588039499084629981048616800443645803129554;
+}
+
+function GetCredentialSubjectID() {
+    return 4792130079462681165428511201253235850015648352883240577315026477780493110675;
+}
+
+function GetExpirationDate() {
+    return 13483382060079230067188057675928039600565406666878111320562435194759310415773;
+}
+
+function GetIssuanceDate() {
+    return 8713837106709436881047310678745516714551061952618778897121563913918335939585;
+}
+
+function GetIssuer() {
+    return 5940025296598751562822259677636111513267244048295724788691376971035167813215;
+}
+
+function GetDocumentNationality() {
+    return 12721581730399791084220775389224758160887300573168177512619749567794685336757;
+}
+
+function GetDocumentIssuer() {
+    return 8420111610095993874869544651671831438228943062702729758375308097770323355054;
+}
+
+function GetGender() {
+    return 5404445087797932868809306015538218496376343675339731487859545200224329791072;
+}
+
+function GetAddressLine1() {
+    return 2789441998411353097504888849796647342929687866714787904727157138859134659534;
+}

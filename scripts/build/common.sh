@@ -7,6 +7,8 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+set -e
+
 download_ptau() {
     local POWEROFTAU=$1
     mkdir -p build
@@ -35,6 +37,7 @@ build_circuit() {
     local POWEROFTAU=$3
     local OUTPUT_DIR=$4
     local PACKAGE_DIR=$5
+    local LIBRARY_PATHS=$6
     local START_TIME=$(date +%s)
 
     echo -e "${BLUE}Compiling circuit: $CIRCUIT_NAME${NC}"
@@ -42,20 +45,17 @@ build_circuit() {
     # Create output directory
     mkdir -p ${OUTPUT_DIR}/${CIRCUIT_NAME}/
     
-    # Set circuit path based on CIRCUIT_TYPE
-    local CIRCUIT_PATH
-    if [ "$CIRCUIT_TYPE" = "dsc" ] || [ "$CIRCUIT_TYPE" = "signature" ] || [ "$CIRCUIT_TYPE" = "credential" ] ; then
-        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
-    else
-        CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/${CIRCUIT_NAME}.circom"
-    fi
-    
+    CIRCUIT_PATH="circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
+
     # Compile circuit
+    # Circom provides three flags for optimization:
+    # --O0 - no optimization
+    # --O1 - default optimization flag for circom 2.2.X
+    # --O2 - default optimization flag for circom 2.1.X
+    # Since circom-witnesscalc works with circom 2.1.X, we have to use --O2
     circom ${CIRCUIT_PATH} \
-        -l node_modules \
-        -l ./node_modules/@zk-kit/binary-merkle-root.circom/src \
-        -l ./node_modules/circomlib/circuits \
-        --r1cs --O1 --wasm -c \
+        $(for lib in $LIBRARY_PATHS; do echo -n "-l ./$lib "; done) \
+        --r1cs --wasm -c \
         --output ${OUTPUT_DIR}/${CIRCUIT_NAME}/
 
     echo -e "${BLUE}Copying package files${NC}"
@@ -137,7 +137,8 @@ build_circuits() {
     local CIRCUIT_TYPE="$1"
     local OUTPUT_DIR="$2"
     local PACKAGE_DIR="$3"
-    shift 2 
+    local LIBRARY_PATHS="$4"
+    shift 3 
     local TOTAL_START_TIME=$(date +%s)
 
     # Build circuits
@@ -149,7 +150,55 @@ build_circuits() {
             download_ptau $POWEROFTAU
             # Build circuit
             echo -e "${BLUE}Building circuit $CIRCUIT_NAME${NC}"
-            build_circuit "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$POWEROFTAU" "$OUTPUT_DIR" "$PACKAGE_DIR"
+            build_circuit "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$POWEROFTAU" "$OUTPUT_DIR" "$PACKAGE_DIR" "$LIBRARY_PATHS"
+        else
+            echo -e "${GRAY}Skipping build for $CIRCUIT_NAME${NC}"
+        fi
+    done
+
+    echo -e "${GREEN}Total completed in $(($(date +%s) - TOTAL_START_TIME)) seconds${NC}"
+}
+
+build_circuit_graph() {
+    local CIRCUIT_NAME=$1
+    local CIRCUIT_TYPE=$2
+    local OUTPUT_DIR=$3
+    local LIBRARY_PATHS=$4
+    local START_TIME=$(date +%s)
+
+    echo -e "${BLUE}Compiling circuit: $CIRCUIT_NAME${NC}"
+    
+    # Create output directory
+    mkdir -p ${OUTPUT_DIR}/${CIRCUIT_NAME}/
+    
+    # Set circuit path based on CIRCUIT_TYPE
+    local CIRCUIT_PATH="$(pwd)/circuits/${CIRCUIT_TYPE}/instances/${CIRCUIT_NAME}.circom"
+    local circuit_graph_path="${OUTPUT_DIR}/${CIRCUIT_NAME}/${CIRCUIT_NAME}_graph.wcd"
+    local top_dir=$(pwd)
+
+    cd circom-witnesscalc
+    cargo build --release
+    time target/release/build-circuit "$CIRCUIT_PATH" "$circuit_graph_path" \
+        $(for lib in $LIBRARY_PATHS; do echo -n "-l $top_dir/$lib "; done)
+    cd ${top_dir}
+}
+
+build_circuit_graphs() {
+    local CIRCUITS=("$@")
+    local CIRCUIT_TYPE="$1"
+    local OUTPUT_DIR="$2"
+    local PACKAGE_DIR="$3"
+    local LIBRARY_PATHS="$4"
+    shift 3
+    local TOTAL_START_TIME=$(date +%s)
+
+    # Build circuits
+    for circuit in "${CIRCUITS[@]}"; do
+        IFS=':' read -r CIRCUIT_NAME POWEROFTAU BUILD_FLAG <<< "$circuit"
+        if [ "$BUILD_FLAG" = "true" ]; then
+            # Build circuit
+            echo -e "${BLUE}Building circuit graph $CIRCUIT_NAME${NC}"
+            build_circuit_graph "$CIRCUIT_NAME" "$CIRCUIT_TYPE" "$OUTPUT_DIR" "$LIBRARY_PATHS"
         else
             echo -e "${GRAY}Skipping build for $CIRCUIT_NAME${NC}"
         fi

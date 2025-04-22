@@ -113,8 +113,6 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
   describe(`credential_${shaAlg}.circom`, function () {
     this.timeout(0);
 
-    assert(process.env.FULL_TEST_SUITE === 'false', 'FULL_TEST_SUITE not supposed for all shaAlgs');
-
     let circuit;
     before(async () => {
       circuit = await wasm_tester(

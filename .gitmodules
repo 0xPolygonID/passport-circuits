@@ -4,3 +4,6 @@
 [submodule "circom-witnesscalc"]
 	path = circom-witnesscalc
 	url = https://github.com/iden3/circom-witnesscalc
+[submodule "zk-email-verify"]
+	path = zk-email-verify
+	url = https://github.com/olomix/zk-email-verify
