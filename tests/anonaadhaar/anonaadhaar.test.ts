@@ -69,7 +69,7 @@ async function prepareTestData() {
     '0x' + bufferToHex(Buffer.from(pk.export({ format: 'jwk' }).n as string, 'base64url'))
   );
 
-  const treeLevels = 14;
+  const treeLevels = 9;
   const tree = await newMemEmptyTrie();
   // key-value pairs to build the credential template
   const template = [
@@ -87,8 +87,6 @@ async function prepareTestData() {
     '6785128192015566537155412245008504798482626052796872471438218406454907503679', // credentialSchema.id
     '4817156672888655522763064392525239094511187154831557262772815264540847425378',
     '0', // credentialSubject.dateOfBirth
-    '17812501853592608022106438142029031484125620705472224666715824544873239913147',
-    '0', // credentialSubject.firstName
     '643493878926457766162531104335565260785288743937125657511062755781004518297',
     '0', // credentialSubject.fullName
     '5404445087797932868809306015538218496376343675339731487859545200224329791072',
@@ -122,8 +120,6 @@ async function prepareTestData() {
   const updateTemplate = [
     '4817156672888655522763064392525239094511187154831557262772815264540847425378',
     '19840101', // credentialSubject.dateOfBirth
-    '17812501853592608022106438142029031484125620705472224666715824544873239913147',
-    '9055566139599481731330446254307216178665393900469433627295807637695545779753', // credentialSubject.firstName
     '643493878926457766162531104335565260785288743937125657511062755781004518297',
     '9055566139599481731330446254307216178665393900469433627295807637695545779753', // credentialSubject.fullName
     '5404445087797932868809306015538218496376343675339731487859545200224329791072',
@@ -137,7 +133,7 @@ async function prepareTestData() {
     '2789441998411353097504888849796647342929687866714787904727157138859134659534',
     '2727536908092799094274850447014528629459829531793846928656959765346782168490', // credentialSubject.addresses
     '11896622783611378286548274235251973588039499084629981048616800443645803129554',
-    '8639584887809663629106058915819143598372772994078727421962823642907007232233', // credentialStatus.id
+    '21443120396673802944321218348342526257281535081932068217446469001474300304', // credentialStatus.id
     '4792130079462681165428511201253235850015648352883240577315026477780493110675',
     '18026946060490633582346941999242407265442400633018823452652749104672360129751', // credentialSubject.id
     '13483382060079230067188057675928039600565406666878111320562435194759310415773',
@@ -169,7 +165,7 @@ async function prepareTestData() {
 
     revocationNonce: 0,
     credentialStatusID:
-      '8639584887809663629106058915819143598372772994078727421962823642907007232233',
+      '21443120396673802944321218348342526257281535081932068217446469001474300304',
     credentialSubjectID:
       '18026946060490633582346941999242407265442400633018823452652749104672360129751',
     userID: '23747161200420134456844951198264139815921171975208487354806063665905574145',
@@ -255,7 +251,7 @@ describe('AadhaarVerifier', function () {
   "@context": [
     "https://www.w3.org/2018/credentials/v1",
     "https://schema.iden3.io/core/jsonld/iden3proofs.jsonld",
-    "ipfs://QmbbizDVuzyhdqbUUk534tUKxEgxVg21QbRXZNpoNBXvcj"
+    "ipfs://QmZbsTnRwtCmbdg3r9o7Txid37LmvPcvmzVi1Abvqu1WKL"
   ],
   "type": [
     "VerifiableCredential",
@@ -265,29 +261,28 @@ describe('AadhaarVerifier', function () {
   "issuanceDate": "2019-03-08T05:30:00Z",
   "credentialSubject": {
     "addresses": {
-    "primaryAddress": {
-      "addressLine1": "C/O Ishwar Chand East Delhi  B-31, 3rd Floor  110051 Krishna Nagar Delhi Radhey Shyam Park Extension Gandhi Nagar Krishna Nagar"
-    }
+      "primaryAddress": {
+        "addressLine1": "C/O Ishwar Chand East Delhi  B-31, 3rd Floor  110051 Krishna Nagar Delhi Radhey Shyam Park Extension Gandhi Nagar Krishna Nagar"
+      }
     },
     "dateOfBirth": 19840101,
-    "firstName": "Sumit Kumar",
     "fullName": "Sumit Kumar",
     "gender": "M",
-    "govermentIdentifier": "269720190308114407437",
+    "governmentIdentifier": "269720190308114407437",
     "governmentIdentifierType": "other",
     "id": "did:iden3:privado:main:2Scn2RfosbkQDMQzQM5nCz3Nk5GnbzZCWzGCd3tc2G",
     "type": "BasicPerson"
   },
   "credentialStatus": {
-    "id": "did:iden3:privado:main:2Si3eZUE6XetYsmU5dyUK2Cvaxr1EEe65vdv2BML4L/credentialStatus?revocationNonce=1051565438\u0026contractAddress=80001:0x2fCE183c7Fbc4EbB5DB3B0F5a63e0e02AE9a85d2\u0026state=a1abdb9f44c7b649eb4d21b59ef34bd38e054aa3e500987575a14fc92c49f42c",
+    "id": "did:iden3:privado:main:2Si3eZUE6XetYsmU5dyUK2Cvaxr1EEe65vdv2BML4L/credentialStatus?revocationNonce=1051565438&contractAddress=80001:0x2fCE183c7Fbc4EbB5DB3B0F5a63e0e02AE9a85d2",
     "type": "Iden3OnchainSparseMerkleTreeProof2023",
     "revocationNonce": 0
   },
   "issuer": "did:iden3:privado:main:2Si3eZUE6XetYsmU5dyUK2Cvaxr1EEe65vdv2BML4L",
   "credentialSchema": {
-    "id": "ipfs://QmR7gqw4MKRLH8XSb75LkQuNAjoKhR3kZAb1A3g7CBRE3M",
+    "id": "ipfs://QmTojMfyzxehCJVw7aUrdWuxdF68R7oLYooGHCUr9wwsef",
     "type": "JsonSchema2023"
-  },
+  }
 }
     */
     const { inputs } = await prepareTestData();
@@ -297,11 +292,13 @@ describe('AadhaarVerifier', function () {
     // compare the results with the results of the go-core library
     // hashIndex
     assert(
-      witness[3] === 9581237652568742850453684546472904118382361570543855328382727534438554155022n
+      witness[3] === 4054615402679542785384775027260446764204786468037476107750479296566911170116n,
+      `HashIndex mismatch: ${witness[3]} != 4054615402679542785384775027260446764204786468037476107750479296566911170116`
     );
-    // hashIndex
+    // hashValue
     assert(
-      witness[4] === 18008128381428548624282039899106504460765785745693349906422544723715663713055n
+      witness[4] === 18008128381428548624282039899106504460765785745693349906422544723715663713055n,
+      `HashValue mismatch: ${witness[4]} != 18008128381428548624282039899106504460765785745693349906422544723715663713055`
     );
     // compare issuanceDate is equal to date from the QR code
     assert(
@@ -315,13 +312,11 @@ describe('AadhaarVerifier', function () {
     assert(BigInt(diff) === BigInt(15776640));
     // compare templateRoot
     assert(
-      witness[9] ===
-        BigInt('13618331910493816144112635202719102044017718006809336112633915446302833345855')
+      witness[9] === 5825835976562378081354907011199401603755377474337834394374885627186741605422n
     );
     // compare issuer
     assert(
-      witness[10] ===
-        BigInt('12146166192964646439780403715116050536535442384123009131510511003232108502337')
+      witness[10] === 12146166192964646439780403715116050536535442384123009131510511003232108502337n
     );
   });
 });

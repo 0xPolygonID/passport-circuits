@@ -56,7 +56,6 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     // keys to update
     var keysToUpdate[smtChanges] = [
         GetDateOfBirth(), // credentialSubject.dateOfBirth
-        GetFirstName(), // credentialSubject.firstName
         GetFullName(), // credentialSubject.fullName
         GetGender(), // credentialSubject.gender
         GetGovernmentIdentifier(), // credentialSubject.govermentIdentifier
@@ -102,7 +101,6 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     /* // For debugging
     log(qrDataExtractor.dob);
     log(qrDataExtractor.name);
-    log(qrDataExtractor.name);
     log(qrDataExtractor.gender);
     log(qrDataExtractor.referenceID);
     log("9625374645547036629006936456349235401907107363945660607867283679088689283602");
@@ -123,7 +121,6 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     // we need to keep the same sequence as update keys
     var valuesToUpdate[smtChanges] = [
         qrDataExtractor.dob, // birthday
-        qrDataExtractor.name, // firstName
         qrDataExtractor.name, // fullName
         qrDataExtractor.gender, // gender
         qrDataExtractor.referenceID, // govermentIdentifier
