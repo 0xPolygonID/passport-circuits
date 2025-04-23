@@ -17,7 +17,7 @@ libs() {
 CIRCUITS=(
     "credential_sha1:20:false"
     "credential_sha224:20:false"
-    "credential_sha256:20:true"
+    "credential_sha256:20:false"
     "credential_sha384:20:false"
     "credential_sha512:20:false"
 )

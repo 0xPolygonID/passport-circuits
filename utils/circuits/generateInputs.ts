@@ -149,7 +149,13 @@ export function generateCircuitInputsSignature(
     .reduce((acc, curr) => ({ ...acc, ...curr }), {});
 }
 
-export async function generateCircuitInputsCredential(passportData: PassportData) {
+interface Options {
+  currentDate: Date;
+  issuanceDate: bigint;
+  expirationDate: bigint;
+}
+
+export async function generateCircuitInputsCredential(passportData: PassportData, opts?: Options) {
   const mrzByteArray = formatMrz(passportData.mrz);
   if (mrzByteArray.length !== 93) {
     throw new Error('MRZ should be 93 bytes long');
@@ -209,18 +215,23 @@ export async function generateCircuitInputsCredential(passportData: PassportData
   }
   const templateRoot = tree.F.toObject(tree.root);
 
-  const currentDate = formatDate(new Date());
-  const issuanceDate = Math.round(+new Date() / 1000);
-  const expirationDate = issuanceDate + 365 * 24 * 60 * 60; // 1 year
+  const currentDate = opts?.currentDate ? formatDate(opts.currentDate) : formatDate(new Date());
+  const issuerDateTimestamp = opts?.issuanceDate
+    ? opts.issuanceDate / 1000000000n
+    : BigInt(Math.round(+new Date() / 1000));
+  const expirationDate = opts?.expirationDate
+    ? opts.expirationDate / 1000000000n
+    : issuerDateTimestamp + BigInt(365 * 24 * 60 * 60);
+
   const updateTemplate = [
     '4817156672888655522763064392525239094511187154831557262772815264540847425378',
     '19960309', // credentialSubject.dateOfBirth
     '2661316897620170050641842010022238582485958559445913964628121513401804945508',
     '20350803', // credentialSubject.documentExpirationDate
     '17812501853592608022106438142029031484125620705472224666715824544873239913147',
-    '779590574833975594150553032190316165100034337907701477766077549696170325957', // credentialSubject.firstName
+    '19942808375966696725385580783188764344143876154143333900178996762128711180062', // credentialSubject.firstName
     '643493878926457766162531104335565260785288743937125657511062755781004518297',
-    '16124395655319932562687594154333620461512120815155591900166934828565073655159', // credentialSubject.fullName
+    '19942808375966696725385580783188764344143876154143333900178996762128711180062', // credentialSubject.fullName
     '5768075745493428917651844471684022554030750947591103713762344570867180513614',
     '3286800018689036072036595048281161368331306321215602580795106602635276597696', // credentialSubject.governmentIdentifier
     '12037662945351652395520680282306597407040165994104304811455681806232413956620',
@@ -234,9 +245,9 @@ export async function generateCircuitInputsCredential(passportData: PassportData
     '4792130079462681165428511201253235850015648352883240577315026477780493110675',
     '18026946060490633582346941999242407265442400633018823452652749104672360129751', // credentialSubject.id
     '13483382060079230067188057675928039600565406666878111320562435194759310415773',
-    (expirationDate * 1000000000).toString(), // expirationDate.id
+    (expirationDate * 1000000000n).toString(), // expirationDate.id
     '8713837106709436881047310678745516714551061952618778897121563913918335939585',
-    (issuanceDate * 1000000000).toString(), // issuanceDate.id
+    (issuerDateTimestamp * 1000000000n).toString(), // issuanceDate.id
     '5940025296598751562822259677636111513267244048295724788691376971035167813215',
     '12146166192964646439780403715116050536535442384123009131510511003232108502337', // issuer.id
     '12721581730399791084220775389224758160887300573168177512619749567794685336757',
@@ -255,13 +266,12 @@ export async function generateCircuitInputsCredential(passportData: PassportData
     siblings.push(res.siblings);
   }
 
-  const lastNameSize = passportData.mrz.split('<<')[0].slice(5).length;
-  const firstNameSize = passportData.mrz.split('<<')[1].replace('<', ' ').length;
-
+  const lastName = passportData.mrz.split('<<')[0].slice(5);
+  const firstName = passportData.mrz.split('<<')[1].replace('<', ' ');
+  const holderNameSize = lastName.length + firstName.length + 2; // 2 for the double space
   return {
     dg1: [...mrzByteArray],
-    lastNameSize: lastNameSize,
-    firstNameSize: firstNameSize,
+    holderNameSize: holderNameSize,
     currentDate: currentDate,
 
     revocationNonce: 0,
@@ -271,7 +281,7 @@ export async function generateCircuitInputsCredential(passportData: PassportData
       '18026946060490633582346941999242407265442400633018823452652749104672360129751',
     userID: '23747161200420134456844951198264139815921171975208487354806063665905574145',
     issuer: '12146166192964646439780403715116050536535442384123009131510511003232108502337',
-    issuanceDate: issuanceDate.toString(),
+    issuanceDate: issuerDateTimestamp.toString(),
 
     linkNonce: 1,
     templateRoot: templateRoot.toString(),
