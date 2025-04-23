@@ -98,7 +98,6 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     var keysToUpdate[smtChanges] = [
         GetDateOfBirth(), // credentialSubject.dateOfBirth
         GetDocumentExpirationDate(), // credentialSubject.documentExpirationDate
-        GetFirstName(), // credentialSubject.firstName
         GetFullName(), // credentialSubject.fullName
         GetGovernmentIdentifier(), // credentialSubject.governmentIdentifier
         GetGovernmentIdentifierType(), // credentialSubject.governmentIdentifierType
@@ -121,7 +120,6 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     log(documentDOB);
     log(documentDOE); // expiration date in format YYYYMMDD == passport mrz
     log(holderNameHash);
-    log(holderNameHash);
     log(documentNumberHash);
     log(documentCodeHash);
     log(documentSexHash);
@@ -138,7 +136,6 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     var valuesToUpdate[smtChanges] = [
         documentDOB, // credentialSubject.dateOfBirth
         documentDOE, // credentialSubject.documentExpirationDate
-        holderNameHash, // credentialSubject.firstName
         holderNameHash, // credentialSubject.fullName
         documentNumberHash, // credentialSubject.govermentIdentifier
         documentCodeHash, // credentialSubject.governmentIdentifierType
