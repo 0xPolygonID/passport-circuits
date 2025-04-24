@@ -18,7 +18,7 @@ PACKAGE_DIR="${CURR_DIR}/package/${CIRCUIT_TYPE}"
 # Define circuits and their configurations
 # format: name:poweroftau:build_flag
 CIRCUITS=(
-    "anonAadhaarV1:22:true"
+    "anonAadhaarV1:21:false"
 )
 
 LIBS=$(libs)

@@ -15,11 +15,11 @@ libs() {
 # Define circuits and their configurations
 # format: name:poweroftau:build_flag
 CIRCUITS=(
-    "credential_sha1:20:false"
-    "credential_sha224:20:false"
-    "credential_sha256:20:false"
-    "credential_sha384:20:false"
-    "credential_sha512:20:false"
+    "credential_sha1:18:false"
+    "credential_sha224:18:false"
+    "credential_sha256:18:false"
+    "credential_sha384:18:false"
+    "credential_sha512:18:false"
 )
 
 LIBS=$(libs)
