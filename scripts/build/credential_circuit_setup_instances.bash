@@ -19,7 +19,7 @@ pragma circom 2.1.9;
 
 include "../credential.circom";
 
-component main { public [currentDate, issuanceDate, templateRoot] } = DG1FieldParser(${int_value}, 13, 15);
+component main { public [currentDate, issuanceDate, templateRoot] } = DG1FieldParser(${int_value}, 8, 14);
 EOF
 
     echo "Created $filename"
