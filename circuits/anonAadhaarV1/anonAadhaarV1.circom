@@ -66,7 +66,8 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
         GetCredentialSubjectID(), // credentialSubject.id
         GetExpirationDate(), // expirationDate.id
         GetIssuanceDate(), // issuanceDate.id
-        GetIssuer() // issuer.id
+        GetIssuer(), // issuer.id,
+        GetDocumentIssuer() // credentialSubject.nationalities.nationality2CountryCode
     ];
 
     // Assert `qrDataPaddedLength` fits in `ceil(log2(maxDataLength))`
@@ -111,6 +112,7 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     log(expirationDate * 1000000000);
     log(issuanceDate * 1000000000);
     log(issuer);
+    log("18607257606080006340563297173112093370969227692083664718938277647469374823290"); // IND
     */
 
     /*
@@ -131,7 +133,8 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
         credentialSubjectID, // credentialSubject.id
         expirationDate * 1000000000, // expirationDate
         issuanceDate * 1000000000, // issuanceDate
-        issuer // issuer
+        issuer, // issuer
+        18607257606080006340563297173112093370969227692083664718938277647469374823290 // nationality2CountryCode poseidon16("IND")
     ];
 
     signal claimRoot;
