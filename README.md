@@ -1,6 +1,6 @@
 # ZK Passport
 ## Project Structure
-- `circuits`: circuits for verification of DSC and signature for the different signature algorithms.
+- `circuits`: circuits to create passport and Aadhaar credentials.
 - `contracts/verifiers`: groth16 verifier contracts built from the circuits.
 - `package`: files needed for generation of witness calculator from `witnesscalc-template` project.
 - `scripts`: scripts for building and packaging
@@ -12,7 +12,7 @@
   git submodule update --init --recursive
   ```
   ```shell
-  npm install
+  yarn install
   ```
 2. Build circuits for the different instances of signature algorithms based on scripts in `scripts/build/`. 
   ```shell
