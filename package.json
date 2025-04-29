@@ -65,6 +65,7 @@
     "node-forge": "^1.3.1",
     "pkijs": "^3.2.5",
     "snarkjs": "^0.7.5",
-    "anon-aadhaar": "git+https://github.com/anon-aadhaar/anon-aadhaar.git"
+    "anon-aadhaar": "git+https://github.com/anon-aadhaar/anon-aadhaar.git",
+    "self": "git+https://github.com/selfxyz/self.git"
   }
 }

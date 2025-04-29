@@ -2,16 +2,16 @@ pragma circom 2.1.9;
 
 include "./constants.circom";
 
-include "../utils/passport/parser/extractors.circom";
-include "../utils/passport/date/dateDiffGreaterThanYear.circom";
-include "../utils/crypto/bitify/bytes.circom";
-include "../utils/crypto/hasher/hash.circom";
 include "../utils/iden3/claimbuilder.circom";
 include "../utils/iden3/bytes.circom";
 include "../utils/iden3/linkId.circom";
 include "../utils/iden3/poseidon.circom";
 include "../utils/iden3/constants.circom";
+include "../utils/passport/parser/extractors.circom";
+include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 
+include "self/circuits/circuits/utils/crypto/bitify/bytes.circom";
+include "self/circuits/circuits/utils/crypto/hasher/hash.circom";
 include "circomlib/circuits/poseidon.circom";
 
 template Integrity(hashAlgo) {
