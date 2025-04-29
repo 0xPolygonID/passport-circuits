@@ -8,9 +8,12 @@ S3_DIR="s3-bucket"
 BUILD_DIR="build/${CIRCUIT_TYPE}"
 
 # Define circuits and their configurations
-# format: name:build_flag
 CIRCUITS=(
     "anonAadhaarV1"
 )
 
-files_credential_circuits "$CIRCUIT_TYPE" "$S3_DIR" "$BUILD_DIR" "${CIRCUITS[@]}" 
+# Copy files to S3 bucket
+for CIRCUIT in "${CIRCUITS[@]}"; do
+    DEST_DIR="${S3_DIR}/${CIRCUIT_TYPE}/${CIRCUIT}"
+    copy_circuit_files "$CIRCUIT" "$BUILD_DIR" "$DEST_DIR"
+done

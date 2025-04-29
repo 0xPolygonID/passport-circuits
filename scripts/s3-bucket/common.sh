@@ -7,6 +7,19 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+copy_circuit_files() {
+    local CIRCUIT=$1
+    local BUILD_DIR=$2
+    local DEST_DIR=$3
+
+    mkdir -p "$DEST_DIR"
+    cp "${BUILD_DIR}/${CIRCUIT}/${CIRCUIT}_final.zkey" "${DEST_DIR}/${CIRCUIT}.zkey"
+    cp "${BUILD_DIR}/${CIRCUIT}/${CIRCUIT}_vkey.json" "${DEST_DIR}/${CIRCUIT}_vkey.json"
+    cp "${BUILD_DIR}/${CIRCUIT}/${CIRCUIT}_js/${CIRCUIT}.wasm" "${DEST_DIR}/${CIRCUIT}.wasm"
+    cp "${BUILD_DIR}/${CIRCUIT}/${CIRCUIT}_graph.wcd" "${DEST_DIR}/${CIRCUIT}.wcd"
+    cp "${BUILD_DIR}/${CIRCUIT}/Verifier_${CIRCUIT}.sol" "${DEST_DIR}/Verifier_${CIRCUIT}.sol"
+}
+
 files_circuit() {
     local CIRCUIT_NAME=$1
     local CIRCUIT_TYPE=$2
