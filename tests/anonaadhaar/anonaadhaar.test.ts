@@ -109,6 +109,8 @@ async function prepareTestData() {
     '0', // issuanceDate.id
     '5940025296598751562822259677636111513267244048295724788691376971035167813215',
     '0', // issuer.id
+    '8420111610095993874869544651671831438228943062702729758375308097770323355054',
+    '0', // credentialSubject.nationalities.nationality2CountryCode
   ];
   for (let i = 0; i < template.length; i += 2) {
     const key = tree.F.e(template[i]);
@@ -142,6 +144,8 @@ async function prepareTestData() {
     '1552023000000000000', // issuanceDate.id
     '5940025296598751562822259677636111513267244048295724788691376971035167813215',
     '12146166192964646439780403715116050536535442384123009131510511003232108502337', // issuer.id
+    '8420111610095993874869544651671831438228943062702729758375308097770323355054',
+    '18607257606080006340563297173112093370969227692083664718938277647469374823290', // credentialSubject.nationalities.nationality2CountryCode
   ];
   const siblings = [[]];
   for (let i = 0; i < updateTemplate.length; i += 2) {
@@ -271,7 +275,10 @@ describe('AadhaarVerifier', function () {
     "governmentIdentifier": "269720190308114407437",
     "governmentIdentifierType": "other",
     "id": "did:iden3:privado:main:2Scn2RfosbkQDMQzQM5nCz3Nk5GnbzZCWzGCd3tc2G",
-    "type": "BasicPerson"
+    "type": "BasicPerson",
+    "nationalities": {
+      "nationality2CountryCode": "IND"
+    }
   },
   "credentialStatus": {
     "id": "did:iden3:privado:main:2Si3eZUE6XetYsmU5dyUK2Cvaxr1EEe65vdv2BML4L/credentialStatus?revocationNonce=1051565438&contractAddress=80001:0x2fCE183c7Fbc4EbB5DB3B0F5a63e0e02AE9a85d2",
@@ -292,8 +299,8 @@ describe('AadhaarVerifier', function () {
     // compare the results with the results of the go-core library
     // hashIndex
     assert(
-      witness[3] === 4054615402679542785384775027260446764204786468037476107750479296566911170116n,
-      `HashIndex mismatch: ${witness[3]} != 4054615402679542785384775027260446764204786468037476107750479296566911170116`
+      witness[3] === 8962210577559804966128815367603307267851593511078544508148374517475917447981n,
+      `HashIndex mismatch: ${witness[3]} != 8962210577559804966128815367603307267851593511078544508148374517475917447981`
     );
     // hashValue
     assert(
@@ -312,11 +319,14 @@ describe('AadhaarVerifier', function () {
     assert(BigInt(diff) === BigInt(15776640));
     // compare templateRoot
     assert(
-      witness[9] === 5825835976562378081354907011199401603755377474337834394374885627186741605422n
+      witness[9] === 5086122537745747254581491345739247223240245653900608092926314604019374578867n,
+      `Template root mismatch: ${witness[9]} != 5086122537745747254581491345739247223240245653900608092926314604019374578867`
     );
     // compare issuer
     assert(
-      witness[10] === 12146166192964646439780403715116050536535442384123009131510511003232108502337n
+      witness[10] ===
+        12146166192964646439780403715116050536535442384123009131510511003232108502337n,
+      `Issuer mismatch: ${witness[10]} != 12146166192964646439780403715116050536535442384123009131510511003232108502337`
     );
   });
 });
