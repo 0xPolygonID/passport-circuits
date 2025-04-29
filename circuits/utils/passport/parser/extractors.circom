@@ -7,6 +7,7 @@ include "../../iden3/poseidon.circom";
 
 include "circomlib/circuits/comparators.circom";
 include "@openpassport/zk-email-circuits/utils/array.circom";
+include "anon-aadhaar/packages/circuits/src/utils/pack.circom";
 
 template FieldExtractor(dg1Size, shift, fieldSize) {
     signal input dg1[dg1Size];

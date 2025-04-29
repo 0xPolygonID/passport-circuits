@@ -3,10 +3,10 @@ pragma circom 2.1.9;
 
 include "../utils/iden3/claimbuilder.circom";
 include "../utils/iden3/constants.circom";
-include "../utils/anonaadhaar/utils/signature.circom";
-include "../utils/anonaadhaar/utils/nullifier.circom";
 include "../utils/anonaadhaar/parser/extractor.circom";
 
+include "anon-aadhaar/packages/circuits/src/helpers/signature.circom";
+include "anon-aadhaar/packages/circuits/src/helpers/nullifier.circom";
 include "circomlib/circuits/poseidon.circom";
 
 /// @title AadhaarQRVerifier
