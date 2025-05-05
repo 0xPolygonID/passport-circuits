@@ -309,8 +309,6 @@ template QRDataExtractor(maxDataLength) {
     timestamp <== timestampExtractor.timestamp;
 
     // Extract gender
-    // Age extractor returns data shifted till DOB. Since size for DOB data is fixed,
-    // we can use the same shifted data to extract gender.
     component genderExtractor = ExtractAndPackAsInt(maxDataLength, genderPosition());
     genderExtractor.nDelimitedData <== nDelimitedData;
     genderExtractor.delimiterIndices <== delimiterIndices;
@@ -327,7 +325,6 @@ template QRDataExtractor(maxDataLength) {
     name <== nameHasher.out;
 
     // Extract referenceID 
-    // referenceID is nonNegativeInteger no need apply Poseidon
     component referenceIDExtractor = ExtractAndPackAsInt(maxDataLength, referenceIDPosition());
     referenceIDExtractor.nDelimitedData <== nDelimitedData;
     referenceIDExtractor.delimiterIndices <== delimiterIndices;
