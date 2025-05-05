@@ -3,7 +3,6 @@ pragma circom 2.1.9;
 include "./constants.circom";
 
 include "../utils/iden3/claimbuilder.circom";
-include "../utils/iden3/bytes.circom";
 include "../utils/iden3/linkId.circom";
 include "../utils/iden3/poseidon.circom";
 include "../utils/iden3/constants.circom";
