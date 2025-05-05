@@ -103,6 +103,15 @@ template ExtractAddressAndPackAsInts(maxDataLength) {
     signal startDelimiterIndex <== delimiterIndices[startAddressIndex];
     signal endDelimiterIndex <== delimiterIndices[endAddressIndex];
 
+    component startIndexSelector = ItemAtIndex(maxDataLength);
+    startIndexSelector.in <== nDelimitedData;
+    startIndexSelector.index <== startDelimiterIndex;
+    startIndexSelector.out === 255;
+    component endIndexSelector = ItemAtIndex(maxDataLength);
+    endIndexSelector.in <== nDelimitedData;
+    endIndexSelector.index <== endDelimiterIndex;
+    endIndexSelector.out === 255;
+
     var extractMaxLength = stringValuePackSize()* MAX_BYTES_IN_FIELD();
     var byteLength = extractMaxLength + 1;
     
