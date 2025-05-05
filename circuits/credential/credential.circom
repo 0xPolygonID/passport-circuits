@@ -6,6 +6,7 @@ include "../utils/iden3/claimbuilder.circom";
 include "../utils/iden3/linkId.circom";
 include "../utils/iden3/poseidon.circom";
 include "../utils/iden3/constants.circom";
+include "../utils/iden3/numbers.circom";
 include "../utils/passport/parser/extractors.circom";
 include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 
@@ -56,6 +57,12 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal output hashIndex;
     signal output hashValue;
     signal output linkId;
+
+    // check if currentDate exists between 0 and 1,048,575;
+    // to prevent pass any value between p/2 and p-1 (negative)
+    component currentDateFitsTo20Bits = CheckMaxBits(20);
+    currentDateFitsTo20Bits.inputInteger <== currentDate;
+    currentDateFitsTo20Bits.isValid === 1;
 
     component documentCodeExtractor = Extractor(DG1_TD3_SIZE(), documentCodePosition(), documentCodeSize());
     documentCodeExtractor.dg1 <== dg1;
