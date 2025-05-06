@@ -8,6 +8,18 @@ import { convertBigIntToByteArray, decompressByteArray } from '@anon-aadhaar/cor
 import assert from 'assert';
 import { testQRData as QRData } from './assets/qr_dev.json';
 
+// Convert the integer back to the original byte values
+// based on the circom DigitBytesToInt template
+function intToDigitBytes(num: number): number[] {
+  const bytes = [];
+  let remaining = num;
+  const tens = Math.floor(remaining / 10);
+  bytes.push(tens + 48); // First byte (tens place + ASCII offset)
+  remaining %= 10;
+  bytes.push(remaining + 48); // Second byte (ones place + ASCII offset)
+  return bytes;
+}
+
 describe('Extractor', function () {
   this.timeout(0);
 
@@ -78,6 +90,9 @@ describe('Extractor', function () {
 
     // Date of birth on integer format
     assert(Number(witness[6]) === 19840101, `expected ${Number(witness[6])} != actual 19840101`);
+
+    const actualVersion = String.fromCharCode(...intToDigitBytes(Number(witness[7])));
+    assert(actualVersion === 'V2');
 
     // Photo
     // Reconstruction of the photo bytes from packed ints and compare each byte

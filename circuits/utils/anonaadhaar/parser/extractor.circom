@@ -48,6 +48,12 @@ There are no official spec docs for Aadhaar V2 available publicly, but the diffe
 - Last 256 bytes is the signature.
 **/
 
+template ExtractQrVersion(maxDataLength) {
+    signal input nDelimitedData[maxDataLength];
+    nDelimitedData[2] === 255;
+    signal output version <== DigitBytesToInt(2)([nDelimitedData[0], nDelimitedData[1]]);
+}
+
 /// @title ExtractAndPackAsInt
 /// @notice Helper function to extract data at a position to a single int (assumes data is less than 31 bytes)
 /// @dev This is only used for state now; but can work for district, name, etc if needed
@@ -283,6 +289,7 @@ template QRDataExtractor(maxDataLength) {
     signal output referenceID;
     signal output address;
     signal output dob;
+    signal output qrVersion;
     signal output photo[photoPackSize()];
 
     // Create `nDelimitedData` - same as `data` but each delimiter is replaced with n * 255
@@ -311,6 +318,11 @@ template QRDataExtractor(maxDataLength) {
 
         nDelimitedData[i] <== is255AndIndexBeforePhoto[i] * n255Filter[i] + data[i];
     }
+
+    // Extract version
+    component qrVersionExtractor = ExtractQrVersion(maxDataLength);
+    qrVersionExtractor.nDelimitedData <== nDelimitedData;
+    qrVersion <== qrVersionExtractor.version;
 
     // Extract timestamp
     component timestampExtractor = TimestampExtractor(maxDataLength);
