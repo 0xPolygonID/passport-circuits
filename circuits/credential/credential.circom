@@ -118,6 +118,11 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
         GetDocumentIssuer() // credentialSubject.nationalities
     ];
 
+    // check if issuanceDate exists between 0 and int64;
+    // to prevent pass any value between p/2 and p-1 (negative)
+    component issuanceDateFitsTo64Bits = CheckMaxBits(64);
+    issuanceDateFitsTo64Bits.inputInteger <== issuanceDate;
+    issuanceDateFitsTo64Bits.isValid === 1;
     // issuanceDate and documentDOETimestamp are in UnixTimestamp format
     signal credentialExpiration <== DateDiffGreaterThanYear()(issuanceDate, documentDOETimestamp);
 
