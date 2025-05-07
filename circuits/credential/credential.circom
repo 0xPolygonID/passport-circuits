@@ -7,11 +7,13 @@ include "../utils/iden3/linkId.circom";
 include "../utils/iden3/poseidon.circom";
 include "../utils/iden3/constants.circom";
 include "../utils/iden3/numbers.circom";
+include "../utils/iden3/strings.circom";
 include "../utils/passport/parser/extractors.circom";
 include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 
 include "self/circuits/circuits/utils/crypto/bitify/bytes.circom";
 include "self/circuits/circuits/utils/crypto/hasher/hash.circom";
+include "@openpassport/zk-email-circuits/utils/array.circom";
 include "circomlib/circuits/poseidon.circom";
 
 template Integrity(hashAlgo) {
@@ -25,6 +27,21 @@ template Integrity(hashAlgo) {
     signal dg1ShaBytes[hashAlgBytesSize];
     dg1ShaBytes <== BitsToBytesArray(hashAlgo)(dg1ShaBits);
     poseidonDg1Hash <== PaddingAndPoseidon(hashAlgBytesSize)(dg1ShaBytes);
+}
+
+template ValidateHolderNameSizeInput() {
+    signal input dg1[DG1_TD3_SIZE()];
+    signal input holderNameSize;
+    
+    component rawNameOfHolder = SelectSubArray(DG1_TD3_SIZE(), nameOfHolderSize());
+    rawNameOfHolder.in <== dg1;
+    rawNameOfHolder.startIndex <== nameOfHolderPosition();
+    rawNameOfHolder.length <== nameOfHolderSize();
+
+    component originalDelimiterSize = CountTrailing(nameOfHolderSize());
+    originalDelimiterSize.string <== rawNameOfHolder.out;
+    originalDelimiterSize.symbol <== dg1DelimiterSymbol();
+    originalDelimiterSize.count + holderNameSize === nameOfHolderSize();
 }
 
 /*
@@ -71,6 +88,8 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     component documentIssuerExtractor = Extractor(DG1_TD3_SIZE(), issuingStatePosition(), issuingStateSize());
     documentIssuerExtractor.dg1 <== dg1;
     signal documentIssuerHash <== documentIssuerExtractor.hash;
+
+    ValidateHolderNameSizeInput()(dg1, holderNameSize);
 
     component holderNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
     holderNameExtractor.dg1 <== dg1;
