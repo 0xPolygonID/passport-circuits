@@ -58,22 +58,24 @@ template ValidateHolderNameSizeInput() {
 template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input dg1[DG1_TD3_SIZE()];
     signal input holderNameSize;
-    signal input currentDate; // Format: YYMMDD
 
     signal input revocationNonce;
     signal input credentialStatusID;
     signal input credentialSubjectID;
     signal input userID;
-    signal input issuer;
-    signal input issuanceDate;
 
     signal input linkNonce;
-    signal input templateRoot;
     signal input siblings[smtChanges][nLevels];
 
     signal output hashIndex;
     signal output hashValue;
     signal output linkId;
+
+    // public inputs
+    signal input currentDate; // Format: YYMMDD
+    signal input issuanceDate;
+    signal input templateRoot;
+    signal input issuer;
 
     // check if currentDate exists between 0 and 1,048,575;
     // to prevent pass any value between p/2 and p-1 (negative)

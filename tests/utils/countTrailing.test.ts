@@ -22,7 +22,7 @@ function generateTestData(holderName: string): { name: string; expectedTrailing:
   };
 }
 
-describe.only('CountTrailing Circuit', function () {
+describe('CountTrailing Circuit', function () {
   this.timeout(0);
   let circuit: Circuit;
 
