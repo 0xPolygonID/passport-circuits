@@ -246,6 +246,8 @@ describe('AadhaarVerifier', function () {
       witness[2] == expectedNullifier,
       `Nullifier mismatch: ${witness[2]} != ${expectedNullifier}`
     );
+
+    assert(witness[7] === 382n, `Qr code version mismatch: ${witness[7]} != 382`);
   });
 
   it('should calculate hashIndex and hashValue', async () => {

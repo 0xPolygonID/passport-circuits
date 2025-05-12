@@ -92,6 +92,7 @@ describe('Extractor', function () {
     assert(Number(witness[6]) === 19840101, `expected ${Number(witness[6])} != actual 19840101`);
 
     const actualVersion = String.fromCharCode(...intToDigitBytes(Number(witness[7])));
+    assert(witness[7] === 382n, `expected ${witness[7]} != actual 382n`);
     assert(actualVersion === 'V2');
 
     // Photo

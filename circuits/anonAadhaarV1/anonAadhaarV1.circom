@@ -53,6 +53,7 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     signal output hashValue;
     signal output issuanceDate;
     signal output expirationDate;
+    signal output qrVersion;
 
     // keys to update
     var keysToUpdate[smtChanges] = [
@@ -104,6 +105,9 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     component expirationFitsTo64Bits = CheckMaxBits(64);
     expirationFitsTo64Bits.inputInteger <== expirationDate;
     expirationFitsTo64Bits.isValid === 1;
+
+    // extract qr version
+    qrVersion <== qrDataExtractor.qrVersion;
 
     /* // For debugging
     log(qrDataExtractor.dob);
