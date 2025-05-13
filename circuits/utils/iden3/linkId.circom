@@ -10,12 +10,5 @@ template LinkID() {
 
     signal output out;
 
-    signal isNonceZero <== IsZero()(linkNonce);
-
-    signal linkID <== Poseidon(2)([dg1Hash, linkNonce]);
-
-    out <== Mux1()(
-        [linkID, 0],
-        isNonceZero
-    );
+    out <== Poseidon(2)([dg1Hash, linkNonce]);
 }
