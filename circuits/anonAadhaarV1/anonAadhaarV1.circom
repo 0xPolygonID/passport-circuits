@@ -104,7 +104,6 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     // Check if the final expirationDate is compatible with the Unix timestamp(int size)
     component expirationFitsTo64Bits = CheckMaxBits(64);
     expirationFitsTo64Bits.inputInteger <== expirationDate;
-    expirationFitsTo64Bits.isValid === 1;
 
     // extract qr version
     qrVersion <== qrDataExtractor.qrVersion;

@@ -24,16 +24,14 @@ describe('CheckMaxBits', function () {
   before(async () => {});
 
   it('Success. Input is less than max size of int', async () => {
-    const witness: any[] = await circuit.calculateWitness({
+    await circuit.calculateWitness({
       inputInteger: 1,
     });
-    assert(witness[1] === 1n);
   });
   it('Success. Input is lass than max size of int', async () => {
-    const witness: any[] = await circuit.calculateWitness({
+    await circuit.calculateWitness({
       inputInteger: getMaxIntSize(),
     });
-    assert(witness[1] === 1n);
   });
   it('Fail. Input is bigger than max size of int', async () => {
     try {

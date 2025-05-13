@@ -81,7 +81,6 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     // to prevent pass any value between p/2 and p-1 (negative)
     component currentDateFitsTo20Bits = CheckMaxBits(20);
     currentDateFitsTo20Bits.inputInteger <== currentDate;
-    currentDateFitsTo20Bits.isValid === 1;
 
     component documentCodeExtractor = Extractor(DG1_TD3_SIZE(), documentCodePosition(), documentCodeSize());
     documentCodeExtractor.dg1 <== dg1;
@@ -143,7 +142,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     // to prevent pass any value between p/2 and p-1 (negative)
     component issuanceDateFitsTo64Bits = CheckMaxBits(64);
     issuanceDateFitsTo64Bits.inputInteger <== issuanceDate;
-    issuanceDateFitsTo64Bits.isValid === 1;
+
     // issuanceDate and documentDOETimestamp are in UnixTimestamp format
     signal credentialExpiration <== DateDiffGreaterThanYear()(issuanceDate, documentDOETimestamp);
 
