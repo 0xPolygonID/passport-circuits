@@ -36,9 +36,9 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     signal input signalHash;
     signal input templateRoot;
     signal input issuer;
+    signal input revocationNonce;
 
     // Iden3 credentials input
-    signal input revocationNonce;
     signal input credentialStatusID;
     signal input credentialSubjectID;
     signal input userID;
