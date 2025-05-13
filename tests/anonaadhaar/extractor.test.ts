@@ -108,4 +108,60 @@ describe('Extractor', function () {
     //   assert(photoWitness[i] === photo.bytes[i])
     // }
   });
+
+  it('try to trimming address data', async () => {
+    const QRDataBytes = convertBigIntToByteArray(BigInt(QRData));
+    const QRDataDecode = decompressByteArray(QRDataBytes);
+
+    const signedData = QRDataDecode.slice(0, QRDataDecode.length - 256);
+
+    const [qrDataPadded, qrDataPaddedLen] = sha256Pad(signedData, 512 * 3);
+
+    const delimiterIndices: number[] = [];
+    for (let i = 0; i < qrDataPadded.length; i++) {
+      if (qrDataPadded[i] === 255) {
+        delimiterIndices.push(i);
+      }
+      if (delimiterIndices.length === 18) {
+        break;
+      }
+    }
+
+    // postal code (pin code) exists between 10th and 11th delimiters
+    const startOfPostalCode = delimiterIndices[10];
+    const endOfPostalCode = delimiterIndices[11];
+
+    // Extract postal code bytes and convert to string
+    const postalCodeBytes = QRDataDecode.slice(startOfPostalCode + 1, endOfPostalCode); // Exclude the delimiter
+    const postalCodeString = String.fromCharCode(...postalCodeBytes);
+    assert.strictEqual(
+      postalCodeString,
+      '110051',
+      `Expected postal code to be '110051', but got '${postalCodeString}'`
+    );
+    // Try to left only 3 bytes of the postal code
+    delimiterIndices[11] = delimiterIndices[11] - 3; // format of postal code: 110051
+
+    const newEndOfPostalCode = delimiterIndices[11];
+    const newPostalCodeBytes = QRDataDecode.slice(startOfPostalCode + 1, newEndOfPostalCode); // Exclude the delimiter
+    const newPostalCodeString = String.fromCharCode(...newPostalCodeBytes);
+    assert.strictEqual(
+      newPostalCodeString,
+      '110',
+      `Expected postal code to be '110', but got '${newPostalCodeString}'`
+    );
+
+    try {
+      await circuit.calculateWitness({
+        data: Uint8ArrayToCharArray(qrDataPadded),
+        qrDataPaddedLength: qrDataPaddedLen,
+        delimiterIndices: delimiterIndices,
+      });
+    } catch (error: any) {
+      assert(
+        error.message.includes('DelimiterValidator'),
+        `Expected error message to include 'DelimiterValidator', but got: ${error.message}`
+      );
+    }
+  });
 });
