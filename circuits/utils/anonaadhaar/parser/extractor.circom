@@ -126,9 +126,11 @@ template ExtractAddressAndPackAsInts(maxDataLength) {
     subArraySelector.startIndex <== startDelimiterIndex; // We want delimiter to be the first byte
     subArraySelector.length <== endDelimiterIndex - startDelimiterIndex;
     
-    // We need convert all 255 byte to 32 (space). Since utf8 encoding does not support byte 255
+    // We need convert all 255 byte to 59 (;). Since ASCII encoding does not support byte 255
     component byteConvertor = BytesConverter(byteLength);
     byteConvertor.in <== subArraySelector.out;
+    byteConvertor.replaceFrom <== 255;
+    byteConvertor.replaceTo <== 59;
 
     // Pack byte[] to int[] where int is field element which take up to 31 bytes
     component outInt = PackBytes(extractMaxLength);
@@ -383,18 +385,4 @@ template QRDataExtractor(maxDataLength) {
     photoExtractor.startDelimiterIndex <== delimiterIndices[photoPosition() - 1];
     photoExtractor.endIndex <== qrDataPaddedLength - 1;
     photo <== photoExtractor.out;
-}
-
-template BytesConverter(n) {
-    signal input in[n];
-    signal output out[n];
-    
-    component is255[n];
-    for (var i = 0; i < n; i++) {
-        is255[i] = IsEqual();
-        is255[i].in[0] <== 255;
-        is255[i].in[1] <== in[i];
-
-        out[i] <== is255[i].out * (32 - in[i]) + in[i];
-    }
 }
