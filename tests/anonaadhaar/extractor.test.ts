@@ -8,6 +8,18 @@ import { convertBigIntToByteArray, decompressByteArray } from '@anon-aadhaar/cor
 import assert from 'assert';
 import { testQRData as QRData } from './assets/qr_dev.json';
 
+// Convert the integer back to the original byte values
+// based on the circom DigitBytesToInt template
+function intToDigitBytes(num: number): number[] {
+  const bytes = [];
+  let remaining = num;
+  const tens = Math.floor(remaining / 10);
+  bytes.push(tens + 48); // First byte (tens place + ASCII offset)
+  remaining %= 10;
+  bytes.push(remaining + 48); // Second byte (ones place + ASCII offset)
+  return bytes;
+}
+
 describe('Extractor', function () {
   this.timeout(0);
 
@@ -72,12 +84,16 @@ describe('Extractor', function () {
 
     // address
     assert(
-      witness[5] === 2727536908092799094274850447014528629459829531793846928656959765346782168490n,
-      `expected ${witness[5]} != actual 2727536908092799094274850447014528629459829531793846928656959765346782168490n`
+      witness[5] === 5031591587830552372449607231505511649306267626852607045693212054932440156856n,
+      `expected ${witness[5]} != actual 5031591587830552372449607231505511649306267626852607045693212054932440156856`
     );
 
     // Date of birth on integer format
     assert(Number(witness[6]) === 19840101, `expected ${Number(witness[6])} != actual 19840101`);
+
+    const actualVersion = String.fromCharCode(...intToDigitBytes(Number(witness[7])));
+    assert(witness[7] === 382n, `expected ${witness[7]} != actual 382n`);
+    assert(actualVersion === 'V2');
 
     // Photo
     // Reconstruction of the photo bytes from packed ints and compare each byte
@@ -91,5 +107,61 @@ describe('Extractor', function () {
     // for (let i = 0; i < photoWitness.length; i++) {
     //   assert(photoWitness[i] === photo.bytes[i])
     // }
+  });
+
+  it('try to trimming address data', async () => {
+    const QRDataBytes = convertBigIntToByteArray(BigInt(QRData));
+    const QRDataDecode = decompressByteArray(QRDataBytes);
+
+    const signedData = QRDataDecode.slice(0, QRDataDecode.length - 256);
+
+    const [qrDataPadded, qrDataPaddedLen] = sha256Pad(signedData, 512 * 3);
+
+    const delimiterIndices: number[] = [];
+    for (let i = 0; i < qrDataPadded.length; i++) {
+      if (qrDataPadded[i] === 255) {
+        delimiterIndices.push(i);
+      }
+      if (delimiterIndices.length === 18) {
+        break;
+      }
+    }
+
+    // postal code (pin code) exists between 10th and 11th delimiters
+    const startOfPostalCode = delimiterIndices[10];
+    const endOfPostalCode = delimiterIndices[11];
+
+    // Extract postal code bytes and convert to string
+    const postalCodeBytes = QRDataDecode.slice(startOfPostalCode + 1, endOfPostalCode); // Exclude the delimiter
+    const postalCodeString = String.fromCharCode(...postalCodeBytes);
+    assert.strictEqual(
+      postalCodeString,
+      '110051',
+      `Expected postal code to be '110051', but got '${postalCodeString}'`
+    );
+    // Try to left only 3 bytes of the postal code
+    delimiterIndices[11] = delimiterIndices[11] - 3; // format of postal code: 110051
+
+    const newEndOfPostalCode = delimiterIndices[11];
+    const newPostalCodeBytes = QRDataDecode.slice(startOfPostalCode + 1, newEndOfPostalCode); // Exclude the delimiter
+    const newPostalCodeString = String.fromCharCode(...newPostalCodeBytes);
+    assert.strictEqual(
+      newPostalCodeString,
+      '110',
+      `Expected postal code to be '110', but got '${newPostalCodeString}'`
+    );
+
+    try {
+      await circuit.calculateWitness({
+        data: Uint8ArrayToCharArray(qrDataPadded),
+        qrDataPaddedLength: qrDataPaddedLen,
+        delimiterIndices: delimiterIndices,
+      });
+    } catch (error: any) {
+      assert(
+        error.message.includes('DelimiterValidator'),
+        `Expected error message to include 'DelimiterValidator', but got: ${error.message}`
+      );
+    }
   });
 });

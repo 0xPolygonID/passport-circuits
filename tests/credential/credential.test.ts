@@ -130,4 +130,91 @@ describe('credential_sha256.circom', function () {
       }
     }
   });
+  it(`CurrentDate is bigger then 1,048,575`, async function () {
+    const passportData = genMockPassportData(
+      'sha256',
+      'sha256',
+      'rsa_sha1_65537_2048',
+      'UKR',
+      '960309',
+      '350803',
+      'AC1234567',
+      'KUZNETSOV',
+      'VALERIY'
+    );
+    const inputs = await generateCircuitInputsCredential(passportData);
+    inputs.currentDate = 1048576; // Set currentDate to a value greater than int(20 bits): max = 1,048,575
+    try {
+      await circuit.calculateWitness(inputs, true);
+      assert.fail('Expected an Assertion Error but no error was thrown');
+    } catch (error: unknown) {
+      console.log('error', error);
+      if (error instanceof Error) {
+        assert(
+          error.message.includes('Error in template CheckMaxBits'),
+          `Expected Assertion Error but got: ${error.message}`
+        );
+      } else {
+        assert.fail('Expected an Error object but got a different type');
+      }
+    }
+  });
+  it(`IssuanceDate is bigger then int64`, async function () {
+    const passportData = genMockPassportData(
+      'sha256',
+      'sha256',
+      'rsa_sha1_65537_2048',
+      'UKR',
+      '960309',
+      '350803',
+      'AC1234567',
+      'KUZNETSOV',
+      'VALERIY'
+    );
+    const inputs = await generateCircuitInputsCredential(passportData);
+    inputs.issuanceDate = "21888242871839275222246405745257275088548364400416034343698204186575776959616"
+    try {
+      await circuit.calculateWitness(inputs, true);
+      assert.fail('Expected an Assertion Error but no error was thrown');
+    } catch (error: unknown) {
+      console.log('error', error);
+      if (error instanceof Error) {
+        assert(
+          error.message.includes('Error in template CheckMaxBits'),
+          `Expected Assertion Error but got: ${error.message}`
+        );
+      } else {
+        assert.fail('Expected an Error object but got a different type');
+      }
+    }
+  });
+  it(`Handle incorrect size of holder name`, async function () {
+    const passportData = genMockPassportData(
+      'sha256',
+      'sha256',
+      'rsa_sha1_65537_2048',
+      'UKR',
+      '960309',
+      '350803',
+      'AC1234567',
+      'KUZNETSOV',
+      'VALERIY'
+    );
+    const inputs = await generateCircuitInputsCredential(passportData);
+    inputs.holderNameSize = 1;
+    try {
+      await circuit.calculateWitness(inputs, true);
+      assert.fail('Expected an Assertion Error but no error was thrown');
+    } catch (error: unknown) {
+      console.log('error', error);
+      if (error instanceof Error) {
+        assert(
+          error.message.includes('Error in template ValidateHolderNameSizeInput'),
+          `Expected Assertion Error but got: ${error.message}`
+        );
+      } else {
+        assert.fail('Expected an Error object but got a different type');
+      }
+    }
+  });
 });

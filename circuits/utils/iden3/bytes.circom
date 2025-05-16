@@ -57,3 +57,19 @@ template DigitBytesToInt(n) {
 
     out <== sums[n];
 }
+
+template BytesConverter(n) {
+    signal input in[n];
+    signal input replaceFrom;
+    signal input replaceTo;
+    signal output out[n];
+    
+    component is255[n];
+    for (var i = 0; i < n; i++) {
+        is255[i] = IsEqual();
+        is255[i].in[0] <== replaceFrom;
+        is255[i].in[1] <== in[i];
+
+        out[i] <== is255[i].out * (replaceTo - in[i]) + in[i];
+    }
+}

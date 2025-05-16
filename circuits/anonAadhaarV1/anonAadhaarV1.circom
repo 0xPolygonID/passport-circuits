@@ -3,6 +3,7 @@ pragma circom 2.1.9;
 
 include "../utils/iden3/claimbuilder.circom";
 include "../utils/iden3/constants.circom";
+include "../utils/iden3/numbers.circom";
 include "../utils/anonaadhaar/parser/extractor.circom";
 
 include "anon-aadhaar/packages/circuits/src/helpers/signature.circom";
@@ -35,9 +36,9 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     signal input signalHash;
     signal input templateRoot;
     signal input issuer;
+    signal input revocationNonce;
 
     // Iden3 credentials input
-    signal input revocationNonce;
     signal input credentialStatusID;
     signal input credentialSubjectID;
     signal input userID;
@@ -52,6 +53,7 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     signal output hashValue;
     signal output issuanceDate;
     signal output expirationDate;
+    signal output qrVersion;
 
     // keys to update
     var keysToUpdate[smtChanges] = [
@@ -98,6 +100,13 @@ template AadhaarQRVerifier(n, k, maxDataLength, nLevels, smtChanges) {
     // use the time of signing as the date of issue
     issuanceDate <== qrDataExtractor.timestamp;
     expirationDate <== issuanceDate + expirationTime;
+
+    // Check if the final expirationDate is compatible with the Unix timestamp(int size)
+    component expirationFitsTo64Bits = CheckMaxBits(64);
+    expirationFitsTo64Bits.inputInteger <== expirationDate;
+
+    // extract qr version
+    qrVersion <== qrDataExtractor.qrVersion;
 
     /* // For debugging
     log(qrDataExtractor.dob);

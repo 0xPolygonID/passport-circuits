@@ -3,15 +3,17 @@ pragma circom 2.1.9;
 include "./constants.circom";
 
 include "../utils/iden3/claimbuilder.circom";
-include "../utils/iden3/bytes.circom";
 include "../utils/iden3/linkId.circom";
 include "../utils/iden3/poseidon.circom";
 include "../utils/iden3/constants.circom";
+include "../utils/iden3/numbers.circom";
+include "../utils/iden3/strings.circom";
 include "../utils/passport/parser/extractors.circom";
 include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 
 include "self/circuits/circuits/utils/crypto/bitify/bytes.circom";
 include "self/circuits/circuits/utils/crypto/hasher/hash.circom";
+include "@openpassport/zk-email-circuits/utils/array.circom";
 include "circomlib/circuits/poseidon.circom";
 
 template Integrity(hashAlgo) {
@@ -25,6 +27,21 @@ template Integrity(hashAlgo) {
     signal dg1ShaBytes[hashAlgBytesSize];
     dg1ShaBytes <== BitsToBytesArray(hashAlgo)(dg1ShaBits);
     poseidonDg1Hash <== PaddingAndPoseidon(hashAlgBytesSize)(dg1ShaBytes);
+}
+
+template ValidateHolderNameSizeInput() {
+    signal input dg1[DG1_TD3_SIZE()];
+    signal input holderNameSize;
+    
+    component rawNameOfHolder = SelectSubArray(DG1_TD3_SIZE(), nameOfHolderSize());
+    rawNameOfHolder.in <== dg1;
+    rawNameOfHolder.startIndex <== nameOfHolderPosition();
+    rawNameOfHolder.length <== nameOfHolderSize();
+
+    component originalDelimiterSize = CountTrailing(nameOfHolderSize());
+    originalDelimiterSize.string <== rawNameOfHolder.out;
+    originalDelimiterSize.symbol <== dg1DelimiterSymbol();
+    originalDelimiterSize.count + holderNameSize === nameOfHolderSize();
 }
 
 /*
@@ -41,22 +58,29 @@ template Integrity(hashAlgo) {
 template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     signal input dg1[DG1_TD3_SIZE()];
     signal input holderNameSize;
-    signal input currentDate; // Format: YYMMDD
 
-    signal input revocationNonce;
     signal input credentialStatusID;
     signal input credentialSubjectID;
     signal input userID;
-    signal input issuer;
-    signal input issuanceDate;
 
     signal input linkNonce;
-    signal input templateRoot;
     signal input siblings[smtChanges][nLevels];
 
     signal output hashIndex;
     signal output hashValue;
     signal output linkId;
+
+    // public inputs
+    signal input currentDate; // Format: YYMMDD
+    signal input issuanceDate;
+    signal input templateRoot;
+    signal input issuer;
+    signal input revocationNonce;
+
+    // check if currentDate exists between 0 and 1,048,575;
+    // to prevent pass any value between p/2 and p-1 (negative)
+    component currentDateFitsTo20Bits = CheckMaxBits(20);
+    currentDateFitsTo20Bits.inputInteger <== currentDate;
 
     component documentCodeExtractor = Extractor(DG1_TD3_SIZE(), documentCodePosition(), documentCodeSize());
     documentCodeExtractor.dg1 <== dg1;
@@ -65,6 +89,8 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     component documentIssuerExtractor = Extractor(DG1_TD3_SIZE(), issuingStatePosition(), issuingStateSize());
     documentIssuerExtractor.dg1 <== dg1;
     signal documentIssuerHash <== documentIssuerExtractor.hash;
+
+    ValidateHolderNameSizeInput()(dg1, holderNameSize);
 
     component holderNameExtractor = ExtractorHolder(DG1_TD3_SIZE(), nameOfHolderSize());
     holderNameExtractor.dg1 <== dg1;
@@ -111,6 +137,11 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
         GetDocumentNationality(), // credentialSubject.nationalities
         GetDocumentIssuer() // credentialSubject.nationalities
     ];
+
+    // check if issuanceDate exists between 0 and int64;
+    // to prevent pass any value between p/2 and p-1 (negative)
+    component issuanceDateFitsTo64Bits = CheckMaxBits(64);
+    issuanceDateFitsTo64Bits.inputInteger <== issuanceDate;
 
     // issuanceDate and documentDOETimestamp are in UnixTimestamp format
     signal credentialExpiration <== DateDiffGreaterThanYear()(issuanceDate, documentDOETimestamp);

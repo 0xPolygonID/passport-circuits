@@ -48,6 +48,11 @@ There are no official spec docs for Aadhaar V2 available publicly, but the diffe
 - Last 256 bytes is the signature.
 **/
 
+template ExtractQrVersion(maxDataLength) {
+    signal input nDelimitedData[maxDataLength];
+    signal output version <== DigitBytesToInt(2)([nDelimitedData[0], nDelimitedData[1]]);
+}
+
 /// @title ExtractAndPackAsInt
 /// @notice Helper function to extract data at a position to a single int (assumes data is less than 31 bytes)
 /// @dev This is only used for state now; but can work for district, name, etc if needed
@@ -74,15 +79,6 @@ template ExtractAndPackAsInt(maxDataLength, extractPosition) {
     subArraySelector.startIndex <== startDelimiterIndex; // We want delimiter to be the first byte
     subArraySelector.length <== endDelimiterIndex - startDelimiterIndex;
     signal shiftedBytes[byteLength] <== subArraySelector.out;
-    
-    // Assert that the first byte is the delimiter (255 * position of the field)
-    shiftedBytes[0] === extractPosition * 255;
-
-    // Assert that last byte is the delimiter (255 * (position of the field + 1))
-    component endDelimiterSelector = ItemAtIndex(maxDataLength);
-    endDelimiterSelector.in <== nDelimitedData;
-    endDelimiterSelector.index <== endDelimiterIndex;
-    endDelimiterSelector.out === (extractPosition + 1) * 255;
 
     component outInt = PackBytes(extractMaxLength);
     for (var i = 0; i < extractMaxLength; i ++) {
@@ -111,9 +107,11 @@ template ExtractAddressAndPackAsInts(maxDataLength) {
     subArraySelector.startIndex <== startDelimiterIndex; // We want delimiter to be the first byte
     subArraySelector.length <== endDelimiterIndex - startDelimiterIndex;
     
-    // We need convert all 255 byte to 32 (space). Since utf8 encoding does not support byte 255
+    // We need convert all 255 byte to 59 (;). Since ASCII encoding does not support byte 255
     component byteConvertor = BytesConverter(byteLength);
     byteConvertor.in <== subArraySelector.out;
+    byteConvertor.replaceFrom <== 255;
+    byteConvertor.replaceTo <== 59;
 
     // Pack byte[] to int[] where int is field element which take up to 31 bytes
     component outInt = PackBytes(extractMaxLength);
@@ -186,10 +184,6 @@ template AgeExtractor(maxDataLength) {
 
     signal shiftedBytes[maxDataLength] <== shifter.out;
 
-    // Assert delimiters around the data is correct
-    shiftedBytes[0] === dobPosition() * 255;
-    shiftedBytes[11] === (dobPosition() + 1) * 255;
-
     // Convert DOB bytes to unix timestamp. 
     // Get year, month, name as int (DD-MM-YYYY format and starts from shiftedBytes[0])
     year <== DigitBytesToInt(4)([shiftedBytes[7], shiftedBytes[8], shiftedBytes[9], shiftedBytes[10]]);
@@ -237,9 +231,6 @@ template PhotoExtractor(maxDataLength) {
     subArraySelector.length <== endIndex - startDelimiterIndex + 1;
     
     signal shiftedBytes[bytesLength] <== subArraySelector.out;
-    
-    // Assert that the first byte is the delimiter (255 * position of name field)
-    shiftedBytes[0] === photoPosition() * 255;
 
     // Pack byte[] to int[] where int is field element which take up to 31 bytes
     // When packing like this the trailing 0s in each chunk would be removed as they are LSB
@@ -252,12 +243,25 @@ template PhotoExtractor(maxDataLength) {
     out <== outInt.out;
 }
 
+template DelimiterValidator(maxDataLength, numDelimiters) {
+    signal input nDelimitedData[maxDataLength];
+    signal input delimiterIndices[numDelimiters];
+
+    component validator[numDelimiters]; // Pre-declare the components array
+
+    for (var i = 0; i < numDelimiters; i++) {
+        validator[i] = ItemAtIndex(maxDataLength); // Assign each component
+        validator[i].in <== nDelimitedData;
+        validator[i].index <== delimiterIndices[i];
+        validator[i].out === (i + 1) * 255;
+    }
+}
 
 /// @title QRDataExtractor
 /// @notice Extracts the name, date, gender, photo from the Aadhaar QR data
 /// @input data[maxDataLength] - QR data without the signature padded
 /// @input qrDataPaddedLength - Length of the padded QR data
-/// @input delimiterIndices[17] - Indices of the delimiters in the QR data
+/// @input delimiterIndices[18] - Indices of the delimiters in the QR data
 /// @output name - single field (int) element representing the name in big endian order
 /// @output age - Unix timestamp representing the date of birth
 /// @output gender - Single byte number representing gender
@@ -274,6 +278,7 @@ template QRDataExtractor(maxDataLength) {
     signal output referenceID;
     signal output address;
     signal output dob;
+    signal output qrVersion;
     signal output photo[photoPackSize()];
 
     // Create `nDelimitedData` - same as `data` but each delimiter is replaced with n * 255
@@ -303,14 +308,21 @@ template QRDataExtractor(maxDataLength) {
         nDelimitedData[i] <== is255AndIndexBeforePhoto[i] * n255Filter[i] + data[i];
     }
 
+    component delimiterValidator = DelimiterValidator(maxDataLength, 18);
+    delimiterValidator.nDelimitedData <== nDelimitedData;
+    delimiterValidator.delimiterIndices <== delimiterIndices;
+
+    // Extract version
+    component qrVersionExtractor = ExtractQrVersion(maxDataLength);
+    qrVersionExtractor.nDelimitedData <== nDelimitedData;
+    qrVersion <== qrVersionExtractor.version;
+
     // Extract timestamp
     component timestampExtractor = TimestampExtractor(maxDataLength);
     timestampExtractor.nDelimitedData <== nDelimitedData;
     timestamp <== timestampExtractor.timestamp;
 
     // Extract gender
-    // Age extractor returns data shifted till DOB. Since size for DOB data is fixed,
-    // we can use the same shifted data to extract gender.
     component genderExtractor = ExtractAndPackAsInt(maxDataLength, genderPosition());
     genderExtractor.nDelimitedData <== nDelimitedData;
     genderExtractor.delimiterIndices <== delimiterIndices;
@@ -327,7 +339,6 @@ template QRDataExtractor(maxDataLength) {
     name <== nameHasher.out;
 
     // Extract referenceID 
-    // referenceID is nonNegativeInteger no need apply Poseidon
     component referenceIDExtractor = ExtractAndPackAsInt(maxDataLength, referenceIDPosition());
     referenceIDExtractor.nDelimitedData <== nDelimitedData;
     referenceIDExtractor.delimiterIndices <== delimiterIndices;
@@ -365,18 +376,4 @@ template QRDataExtractor(maxDataLength) {
     photoExtractor.startDelimiterIndex <== delimiterIndices[photoPosition() - 1];
     photoExtractor.endIndex <== qrDataPaddedLength - 1;
     photo <== photoExtractor.out;
-}
-
-template BytesConverter(n) {
-    signal input in[n];
-    signal output out[n];
-    
-    component is255[n];
-    for (var i = 0; i < n; i++) {
-        is255[i] = IsEqual();
-        is255[i].in[0] <== 255;
-        is255[i].in[1] <== in[i];
-
-        out[i] <== is255[i].out * (32 - in[i]) + in[i];
-    }
 }

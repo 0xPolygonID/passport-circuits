@@ -6,6 +6,7 @@
     "test": "npm run test-credential && npm run test-anonaadhaar",
     "test-credential": "FULL_TEST_SUITE=true npx ts-mocha --max-old-space-size=40960 'tests/credential/*.test.ts' --exit",
     "test-anonaadhaar": "npx ts-mocha --max-old-space-size=40960 'tests/anonaadhaar/*.test.ts' --exit",
+    "test-utils": "npx ts-mocha --max-old-space-size=40960 'tests/utils/*.test.ts' --exit",
     "build-all": "bash scripts/build/build_credential_circuit.sh",
     "build-credential": "bash scripts/build/build_credential_circuit.sh",
     "build-anonaadhaar": "bash scripts/build/build_anonaadhaar_circuits.sh",

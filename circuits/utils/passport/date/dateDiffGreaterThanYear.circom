@@ -16,13 +16,13 @@ template DateDiffGreaterThanYear() {
     diff <== expirationTimestamp - currentTimestamp;
 
     // Ensure difference is non-negative (expirationTimestamp >= currentTimestamp)
-    component isNonNegative = GreaterEqThan(32);
+    component isNonNegative = GreaterEqThan(64);
     isNonNegative.in[0] <== diff;
     isNonNegative.in[1] <== 0;
     isNonNegative.out === 1;
 
     // Comparator to check if diff is >= ONE_YEAR_SECONDS
-    component isGreaterEq = GreaterEqThan(32);
+    component isGreaterEq = GreaterEqThan(64);
     isGreaterEq.in[0] <== diff;
     isGreaterEq.in[1] <== ONE_YEAR_SECONDS;
 
