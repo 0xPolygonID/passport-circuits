@@ -13,3 +13,4 @@ s3-bucket/
 s3/
 !scripts/s3-bucket/
 rapidsnark/
+contracts/
