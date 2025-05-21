@@ -1,0 +1,60 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update git submodules
+        run: git submodule update --init
+
+      # It is hard to build circom-witnesscalc on GitHub Actions
+      # so we are waiting for prebuilt binaries to be available
+      # - name: Install Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
+      #     profile: minimal
+      #     override: true
+
+      # - name: Build circom-witnesscalc
+      #   run: |
+      #     cd ./circom-witnesscalc
+      #     cargo build --release
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.16.0
+
+      - name: Install circom 2.1.9
+        run: |
+          wget https://github.com/iden3/circom/releases/download/v2.1.9/circom-linux-amd64 -O /usr/local/bin/circom
+          chmod +x /usr/local/bin/circom
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run tests
+        run: npm run test
+
+      # Waiting for prebuilt circom-witnesscalc to be available
+      # - name: Download circuits
+      #   run: bash dl_circuits.sh
+
+      # - name: Integration Credential
+      #   run: npm run integration-credential
+
+      # - name: Integration AnonAadhaar
+      #   run: npm run integration-anonaadhaar

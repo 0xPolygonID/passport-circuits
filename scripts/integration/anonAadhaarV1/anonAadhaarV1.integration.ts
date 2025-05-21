@@ -41,10 +41,10 @@ describe(`anonAadhaarV1`, function () {
     inputs = jsonInputs;
     circuitName = `anonAadhaarV1`;
     witness_calculator = `./circom-witnesscalc/target/release/calc-witness`;
-    circuit_graph_path = `./build/${circuitName}/${circuitName}/${circuitName}_graph.wcd`;
+    circuit_graph_path = `./build/${circuitName}/${circuitName}/${circuitName}.wcd`;
     input_path = `./build/${circuitName}/${circuitName}/input.json`;
     witnes_path = `./build/${circuitName}/${circuitName}/output.wtns`;
-    zkey_path = `./build/${circuitName}/${circuitName}/${circuitName}_final.zkey`;
+    zkey_path = `./build/${circuitName}/${circuitName}/${circuitName}.zkey`;
     v_key = `./build/${circuitName}/${circuitName}/${circuitName}_vkey.json`;
   });
 

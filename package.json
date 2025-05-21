@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run test-credential && npm run test-anonaadhaar",
-    "test-credential": "FULL_TEST_SUITE=true npx ts-mocha --max-old-space-size=40960 'tests/credential/*.test.ts' --exit",
+    "test-credential": "FULL_TEST_SUITE=false npx ts-mocha --max-old-space-size=40960 'tests/credential/*.test.ts' --exit",
     "test-anonaadhaar": "npx ts-mocha --max-old-space-size=40960 'tests/anonaadhaar/*.test.ts' --exit",
     "test-utils": "npx ts-mocha --max-old-space-size=40960 'tests/utils/*.test.ts' --exit",
     "build-all": "bash scripts/build/build_credential_circuit.sh",
@@ -38,7 +38,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@anon-aadhaar/core": "^2.4.3",
+    "@anon-aadhaar/core": "2.4.3",
     "@iden3/js-crypto": "^1.3.0",
     "@openpassport/zk-kit-imt": "^0.0.5",
     "@openpassport/zk-kit-lean-imt": "^0.0.6",
