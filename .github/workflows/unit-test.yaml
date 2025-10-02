@@ -45,9 +45,6 @@ jobs:
           corepack enable
           corepack prepare yarn@4.6.0 --activate
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: Install dependencies
         run: pnpm install
 
