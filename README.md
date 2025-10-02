@@ -68,3 +68,6 @@ or
 ```
 FULL_TEST_SUITE=true npm run integration-signature
 ```
+
+## Security Audits
+1. Audit report dated May 15, 2025: [15-05-2025-passport-circuits-audit.pdf](https://raw.githubusercontent.com/0xPolygonID/audits/refs/heads/main/circuits/15-05-2025-passport-circuits-audit.pdf)
