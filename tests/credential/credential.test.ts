@@ -50,21 +50,20 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       );
       const inputs = await generateCircuitInputsCredential(passportData, {
         currentDate: new Date('2024-01-01'),
-        issuanceDate: 1742578132000000000n,
-        expirationDate: 1774114132000000000n
+        issuanceDate: 1742578132000000000n
       });
 
       const w = await circuit.calculateWitness(inputs, true);
       await circuit.checkConstraints(w);
       // Hash Index
       assert(
-        w[1] === 21746881643302549454056364807195696746352973338897115776686822385268131050953n,
+        w[1] === 19292235858276444384280114997827871641118146185714873530023364159040018023263n,
         `Hash Index: ${w[1]}`
       );
 
       // Hash Value
       assert(
-        w[2] === 20008859012517445819901041236908823100073815023181291226591238728478957482360n,
+        w[2] === 20661880459224054680311568334655353588113926319608771155576598304028828385849n,
         `Hash Value: ${w[2]}`
       );
 

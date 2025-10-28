@@ -152,7 +152,6 @@ export function generateCircuitInputsSignature(
 interface Options {
   currentDate: Date;
   issuanceDate: bigint;
-  expirationDate: bigint;
 }
 
 export async function generateCircuitInputsCredential(passportData: PassportData, opts?: Options) {
@@ -217,9 +216,7 @@ export async function generateCircuitInputsCredential(passportData: PassportData
   const issuerDateTimestamp = opts?.issuanceDate
     ? opts.issuanceDate / 1000000000n
     : BigInt(Math.round(+new Date() / 1000));
-  const expirationDate = opts?.expirationDate
-    ? opts.expirationDate / 1000000000n
-    : issuerDateTimestamp + BigInt(365 * 24 * 60 * 60);
+  const expirationDate = BigInt(new Date(extractExpirationFromMrz(passportData.mrz)).getTime() / 1000) 
 
   const updateTemplate = [
     '4817156672888655522763064392525239094511187154831557262772815264540847425378',
@@ -335,4 +332,71 @@ export function formatInput(input: any) {
   } else {
     return [BigInt(input).toString()];
   }
+}
+
+/**
+ * Extract expiration date from MRZ (passport / TD3).
+ *
+ * Supports TD3 (2 lines × 44 chars) MRZs. If you pass the two-line MRZ
+ * either as a single string with `\n` between lines, or as a single 88-char
+ * string (concatenated lines), the function will try to parse it.
+ *
+ * Returns ISO date "YYYY-MM-DD" or null if parsing fails.
+ */
+export function extractExpirationFromMrz(mrz: string): string | null {
+  if (!mrz || typeof mrz !== "string") return null;
+
+  const cleaned = mrz.replace(/\r/g, "").trim();
+
+  let lines = cleaned.split("\n").map((l) => l.trim());
+
+  // If user passed a single-line 88-char MRZ (two lines concatenated), split it
+  if (lines.length === 1 && lines[0].length === 88) {
+    lines = [lines[0].slice(0, 44), lines[0].slice(44, 88)];
+  }
+
+  if (lines.length >= 2) {
+    const line1 = lines[0];
+    const line2 = lines[1];
+
+    if (line1.length >= 44 && line2.length >= 44) {
+      const expiryYYMMDD = line2.slice(21, 27); // 6 chars, YYMMDD
+      const iso = parseMrzDateYYMMDD(expiryYYMMDD);
+      return iso;
+    }
+  }
+  return null;
+}
+
+/**
+ * Parse YYMMDD (from MRZ) into ISO YYYY-MM-DD.
+ * Heuristic to choose century:
+ *  - prefer 2000+YY if it results in a year <= (currentYear + 20)
+ *  - otherwise fallback to 1900+YY
+ *
+ * Returns ISO date string or null on failure.
+ */
+function parseMrzDateYYMMDD(yyMMdd: string): string | null {
+  if (!/^\d{6}$/.test(yyMMdd)) return null;
+  const yy = parseInt(yyMMdd.slice(0, 2), 10);
+  const mm = parseInt(yyMMdd.slice(2, 4), 10);
+  const dd = parseInt(yyMMdd.slice(4, 6), 10);
+
+  if (mm < 1 || mm > 12) return null;
+  if (dd < 1 || dd > 31) return null;
+
+  const now = new Date();
+  const currentYear = now.getUTCFullYear();
+  const cand2000 = 2000 + yy;
+  const cand1900 = 1900 + yy;
+  const year = cand2000 <= currentYear + 20 ? cand2000 : cand1900;
+
+  const d = new Date(Date.UTC(year, mm - 1, dd, 0, 0, 0));
+  if (d.getUTCFullYear() !== year || d.getUTCMonth() !== mm - 1 || d.getUTCDate() !== dd) {
+    return null;
+  }
+  const YYYY = d.getUTCFullYear().toString().padStart(4, "0");
+  const MM = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const DD = String(d.getUTCDate()).padStart(2, "0");
+  return `${YYYY}-${MM}-${DD}`;
 }

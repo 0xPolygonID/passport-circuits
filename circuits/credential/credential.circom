@@ -9,7 +9,6 @@ include "../utils/iden3/constants.circom";
 include "../utils/iden3/numbers.circom";
 include "../utils/iden3/strings.circom";
 include "../utils/passport/parser/extractors.circom";
-include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 
 include "self/circuits/circuits/utils/crypto/bitify/bytes.circom";
 include "self/circuits/circuits/utils/crypto/hasher/hash.circom";
@@ -119,7 +118,6 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     documentDOEExtractor.dg1 <== dg1;
     documentDOEExtractor.currentDate <== currentDate;
     signal documentDOE <== documentDOEExtractor.out;
-    signal documentDOETimestamp <== documentDOEExtractor.timestamp;
 
     var keysToUpdate[smtChanges] = [
         GetDateOfBirth(), // credentialSubject.dateOfBirth
@@ -143,8 +141,8 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     component issuanceDateFitsTo64Bits = CheckMaxBits(64);
     issuanceDateFitsTo64Bits.inputInteger <== issuanceDate;
 
-    // issuanceDate and documentDOETimestamp are in UnixTimestamp format
-    signal credentialExpiration <== DateDiffGreaterThanYear()(issuanceDate, documentDOETimestamp);
+    // documentDOEExtractor.timestamp are in UnixTimestamp format
+    signal credentialExpiration <== documentDOEExtractor.timestamp;
 
     /*
     // For debuging mt update
