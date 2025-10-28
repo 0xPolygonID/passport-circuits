@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "pnpm run test-credential && pnpm run test-anonaadhaar",
-    "test-credential": "FULL_TEST_SUITE=false ts-mocha -p tsconfig.json --max-old-space-size=40960 \"tests/credential/*.test.ts\" --exit",
-    "test-anonaadhaar": "ts-mocha -p tsconfig.json --max-old-space-size=40960 \"tests/anonaadhaar/*.test.ts\" --exit",
+    "test": "npm run test-credential && npm run test-anonaadhaar",
+    "test-credential": "FULL_TEST_SUITE=false npx ts-mocha --max-old-space-size=40960 'tests/credential/*.test.ts' --exit",
+    "test-anonaadhaar": "npx ts-mocha --max-old-space-size=40960 'tests/anonaadhaar/*.test.ts' --exit",
     "test-utils": "npx ts-mocha --max-old-space-size=40960 'tests/utils/*.test.ts' --exit",
     "build-all": "bash scripts/build/build_credential_circuit.sh",
     "build-credential": "bash scripts/build/build_credential_circuit.sh",
@@ -26,16 +26,16 @@
     "@types/chai-as-promised": "^7.1.6",
     "@types/circomlibjs": "^0.1.6",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.9.2",
+    "@types/node": "22.13.10",
     "@types/node-forge": "^1.3.11",
     "@types/snarkjs": "^0.7.9",
     "chai": "^4.3.8",
     "circomlibjs": "^0.1.7",
-    "mocha": "^11.7.4",
+    "mocha": "10.3.0",
     "prettier": "^3.5.3",
-    "ts-mocha": "^10.1.0",
+    "ts-mocha": "10.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "5.8.2"
   },
   "dependencies": {
     "@anon-aadhaar/core": "2.4.3",
