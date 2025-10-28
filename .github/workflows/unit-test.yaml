@@ -47,10 +47,10 @@ jobs:
           chmod +x /usr/local/bin/circom
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
       - name: Run tests
-        run: pnpm test
+        run: npm run test
 
       # Waiting for prebuilt circom-witnesscalc to be available
       # - name: Download circuits
