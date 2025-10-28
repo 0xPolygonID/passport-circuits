@@ -54,7 +54,7 @@
     "asn1js": "^3.0.5",
     "circom-bigint": "https://github.com/0xbok/circom-bigint",
     "circom-dl": "https://github.com/distributed-lab/circom-dl",
-    "circom_tester": "github:remicolin/circom_tester#main",
+    "circom_tester": "0.0.22",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "dotenv": "^16.4.7",
