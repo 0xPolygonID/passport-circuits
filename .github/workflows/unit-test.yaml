@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: 20.16.0
 
-     - name: Enable Corepack & Yarn 4
+      - name: Enable Corepack
         run: |
           corepack enable
           corepack prepare yarn@4.6.0 --activate
