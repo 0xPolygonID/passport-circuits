@@ -35,10 +35,8 @@ jobs:
         with:
           node-version: 20.16.0
 
-      - name: Enable Corepack
-        run: |
-          corepack enable
-          corepack prepare yarn@4.6.0 --activate
+      - name: Install Yarn classic
+        run: npm i -g yarn@1.22.22
 
       - name: Install circom 2.1.9
         run: |
