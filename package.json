@@ -12,9 +12,11 @@
     "build-anonaadhaar": "bash scripts/build/build_anonaadhaar_circuits.sh",
     "integration-credential": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/credential/credential.integration.ts' --exit",
     "integration-anonaadhaar": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/anonAadhaarV1/anonAadhaarV1.integration.ts' --exit",
-    "s3-bucket-credential": "bash scripts/s3-bucket/files_credential_circuits.sh",
-    "s3-bucket-anonaadhaar": "bash scripts/s3-bucket/files_anonaadhaar_circuits.sh",
-    "generate-credential-circuits": "bash scripts/build/credential_circuit_setup_instances.bash"
+    "generate-credential-circuits": "bash scripts/build/credential_circuit_setup_instances.bash",
+    "s3-anonaadhaar-zip": "bash scripts/s3-bucket/prepare_anonaadhaar_zip.sh",
+    "s3-credential-zip": "bash scripts/s3-bucket/prepare_credential_zip.sh",
+    "s3-package-zip": "bash scripts/s3-bucket/prepare_package_zip.sh",
+    "s3-verification-keys-zip": "bash scripts/s3-bucket/prepare_verification_keys.sh"
   },
   "keywords": [],
   "author": "",

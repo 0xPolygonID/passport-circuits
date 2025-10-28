@@ -5,11 +5,12 @@ build/
 node_modules/
 err.log
 .env
-package/**/*.r1cs
-package/**/**/bin/
+package/
 **/*.a
 **/*.so
 **/*.h
 s3-bucket/
+s3/
 !scripts/s3-bucket/
 rapidsnark/
+contracts/
