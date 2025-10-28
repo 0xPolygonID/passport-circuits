@@ -7,13 +7,9 @@
     "module": "CommonJS",
     "allowJs": true,
     "checkJs": false,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["mocha", "node"]
   },
-  "include": [
-    "tests/**/*",
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["tests/**/*", "src/**/*"],
+  "exclude": ["node_modules"]
 }
