@@ -141,7 +141,7 @@ template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
     component issuanceDateFitsTo64Bits = CheckMaxBits(64);
     issuanceDateFitsTo64Bits.inputInteger <== issuanceDate;
 
-    // documentDOEExtractor.timestamp are in UnixTimestamp format
+    // documentDOEExtractor.timestamp is in UnixTimestamp format
     signal credentialExpiration <== documentDOEExtractor.timestamp;
 
     /*
