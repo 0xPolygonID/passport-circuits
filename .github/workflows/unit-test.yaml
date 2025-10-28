@@ -35,11 +35,11 @@ jobs:
         with:
           node-version: 20.16.0
 
-      - name: Enable Corepack
-        run: |
-          npm i -g corepack@latest
-          corepack enable
-          corepack prepare yarn@4.6.0 --activate
+      # - name: Enable Corepack
+      #   run: |
+      #     npm i -g corepack@latest
+      #     corepack enable
+      #     corepack prepare yarn@4.6.0 --activate
 
       - name: Install circom 2.1.9
         run: |
@@ -47,7 +47,7 @@ jobs:
           chmod +x /usr/local/bin/circom
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Run tests
         run: npm run test
