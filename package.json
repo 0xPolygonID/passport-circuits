@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run test-credential && npm run test-anonaadhaar",
-    "test-credential": "FULL_TEST_SUITE=false ts-mocha -p tsconfig.json -r ts-node/register/transpile-only --max-old-space-size=40960 \"tests/credential/*.test.ts\" --exit",
-    "test-anonaadhaar": "ts-mocha -p tsconfig.json -r ts-node/register/transpile-only --max-old-space-size=40960 \"tests/anonaadhaar/*.test.ts\" --exit",
+    "test-credential": "TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register/transpile-only --extension ts --max-old-space-size=40960 \"tests/credential/**/*.test.ts\" --exit",
+    "test-anonaadhaar": "TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register/transpile-only --extension ts --max-old-space-size=40960 \"tests/anonaadhaar/**/*.test.ts\" --exit",
     "test-utils": "npx ts-mocha --max-old-space-size=40960 'tests/utils/*.test.ts' --exit",
     "build-all": "bash scripts/build/build_credential_circuit.sh",
     "build-credential": "bash scripts/build/build_credential_circuit.sh",
