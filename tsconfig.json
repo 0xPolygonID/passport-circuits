@@ -7,8 +7,13 @@
     "module": "CommonJS",
     "allowJs": true,
     "checkJs": false,
-    "outDir": "./dist",
+    "outDir": "./dist"
   },
-  "include": ["tests/**/*", "src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "tests/**/*",
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

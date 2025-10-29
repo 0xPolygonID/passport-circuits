@@ -2,7 +2,6 @@
   "name": "passport-circuits",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "npm run test-credential && npm run test-anonaadhaar",
     "test-credential": "FULL_TEST_SUITE=false npx ts-mocha --max-old-space-size=40960 'tests/credential/*.test.ts' --exit",
