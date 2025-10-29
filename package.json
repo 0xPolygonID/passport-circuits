@@ -2,10 +2,11 @@
   "name": "passport-circuits",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "npm run test-credential && npm run test-anonaadhaar",
-    "test-credential": "TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register/transpile-only --extension ts --max-old-space-size=40960 \"tests/credential/**/*.test.ts\" --exit",
-    "test-anonaadhaar": "TS_NODE_PROJECT=tsconfig.json mocha -r ts-node/register/transpile-only --extension ts --max-old-space-size=40960 \"tests/anonaadhaar/**/*.test.ts\" --exit",
+    "test-credential": "FULL_TEST_SUITE=false npx ts-mocha --max-old-space-size=40960 'tests/credential/*.test.ts' --exit",
+    "test-anonaadhaar": "npx ts-mocha --max-old-space-size=40960 'tests/anonaadhaar/*.test.ts' --exit",
     "test-utils": "npx ts-mocha --max-old-space-size=40960 'tests/utils/*.test.ts' --exit",
     "build-all": "bash scripts/build/build_credential_circuit.sh",
     "build-credential": "bash scripts/build/build_credential_circuit.sh",
