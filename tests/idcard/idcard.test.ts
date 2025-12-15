@@ -26,7 +26,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
     let circuit;
     before(async () => {
       circuit = await wasm_tester(
-        path.join(__dirname, `../../circuits/idCard/instances/idcard_${shaAlg}.circom`),
+        path.join(__dirname, `../../circuits/idcard/instances/idcard_${shaAlg}.circom`),
         {
           include: ['node_modules'],
         }
@@ -90,7 +90,7 @@ describe('idCard_sha256.circom', function () {
   let circuit: Circuit;
   before(async () => {
     circuit = await wasm_tester(
-      path.join(__dirname, '../../circuits/idCard/instances/idcard_sha256.circom'),
+      path.join(__dirname, '../../circuits/idcard/instances/idcard_sha256.circom'),
       {
         include: ['node_modules'],
       }
