@@ -9,7 +9,7 @@ import { hashAlgos } from '../../constants/constants';
 import { DscCertificateMetaData, parseDscCertificateData } from './parseDscCertificateData';
 import { brutforceSignatureAlgorithm } from './brutForcePassportSignature';
 import { findSubarrayIndex } from '../../arrays';
-import { formatMrz } from '../format';
+import { formatMrzTD1, formatMrzTD3 } from '../format';
 import { getHashLen } from '../../hash';
 import { hash } from '../../hash';
 
@@ -52,14 +52,23 @@ function findHashSizeOfEContent(eContent: number[], signedAttr: number[]) {
   return { hashFunction: 'unknown', offset: -1 };
 }
 
+function formatMrz(mrz: string): number[] {
+  if (mrz.length === 90) {
+    // 95 bytes - 5 bytes of tag
+    return formatMrzTD1(mrz);
+  } else if (mrz.length === 88) {
+    // 93 bytes - 5 bytes of tag
+    return formatMrzTD3(mrz);
+  }
+  throw new Error('Unsupported MRZ format for DG1 hash finding');
+}
+
 function findDG1HashInEContent(
   mrz: string,
   eContent: number[]
-): { hash: number[]; hashFunction: string; offset: number } | null {
-  const formattedMrz = formatMrz(mrz);
-
+): { hash: number[]; hashFunction: string; offset: number } {
   for (const hashFunction of hashAlgos) {
-    const hashValue = hash(hashFunction, formattedMrz);
+    const hashValue = hash(hashFunction, formatMrz(mrz));
     const normalizedHash = (hashValue as number[]).map((byte) => (byte > 127 ? byte - 256 : byte));
     const hashOffset = findSubarrayIndex(eContent, normalizedHash);
 
@@ -67,11 +76,11 @@ function findDG1HashInEContent(
       return { hash: hashValue as number[], hashFunction, offset: hashOffset };
     }
   }
-  return null;
+  throw new Error('DG1 hash not found in eContent');
 }
+
 function getDgPaddingBytes(passportData: PassportData, dg1HashFunction: string): number {
-  const formattedMrz = formatMrz(passportData.mrz);
-  const hashValue = hash(dg1HashFunction, formattedMrz);
+  const hashValue = hash(dg1HashFunction, formatMrz(passportData.mrz));
   const normalizedHash = (hashValue as number[]).map((byte) => (byte > 127 ? byte - 256 : byte));
   const dg1HashOffset = findSubarrayIndex(passportData.eContent, normalizedHash);
   const dg2Hash = passportData.dg2Hash;
@@ -92,12 +101,9 @@ export function getCurveOrExponent(certData: CertificateData): string {
 }
 
 export function parsePassportData(passportData: PassportData): PassportMetadata {
-  const dg1HashInfo = passportData.mrz
-    ? findDG1HashInEContent(passportData.mrz, passportData.eContent)
-    : null;
-
-  const dg1HashFunction = dg1HashInfo?.hashFunction || 'unknown';
-  const dg1HashOffset = dg1HashInfo?.offset || 0;
+  const dg1HashInfo = findDG1HashInEContent(passportData.mrz, passportData.eContent);
+  const dg1HashFunction = dg1HashInfo.hashFunction;
+  const dg1HashOffset = dg1HashInfo.offset;
   let dgPaddingBytes = -1;
   try {
     dgPaddingBytes = getDgPaddingBytes(passportData, dg1HashFunction);

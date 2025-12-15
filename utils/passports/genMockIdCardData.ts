@@ -1,22 +1,30 @@
 import { PassportData } from '../types';
 import { countryCodes } from '../constants/constants';
 import { SignatureAlgorithm } from '../types';
-import { formatMrzTD3 } from './format';
-import { buildTD3, buildFullICAODocumentPayload } from './utils';
+import { buildTD1, buildFullICAODocumentPayload } from './utils';
+import { formatMrzTD1 } from './format';
 
-export function genMockPassportData(
+export function genMockIdCardData(
   dgHashAlgo: string,
   eContentHashAlgo: string,
   signatureType: SignatureAlgorithm,
   nationality: keyof typeof countryCodes,
   birthDate: string,
   expiryDate: string,
-  passportNumber: string = '15AA81234',
+  documentNumber: string = 'ID1234567',
   lastName: string = 'DUPONT',
-  firstName: string = 'ALPHONSE HUGHUES ALBERT'
+  firstName: string = 'ALPHONSE'
 ): PassportData {
-  const mrz = buildTD3(nationality, birthDate, expiryDate, passportNumber, lastName, firstName);
-  const mrzByteArray = formatMrzTD3(mrz);
+  const mrz = buildTD1(
+    nationality,
+    birthDate,
+    expiryDate,
+    'M',
+    documentNumber,
+    lastName,
+    firstName
+  );
+  const mrzByteArray = formatMrzTD1(mrz);
 
   return buildFullICAODocumentPayload(
     dgHashAlgo,

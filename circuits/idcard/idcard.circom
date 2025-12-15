@@ -1,0 +1,216 @@
+pragma circom 2.1.9;
+
+include "./constants.circom";
+
+include "../utils/iden3/claimbuilder.circom";
+include "../utils/iden3/linkId.circom";
+include "../utils/iden3/poseidon.circom";
+include "../utils/iden3/constants.circom";
+include "../utils/iden3/numbers.circom";
+include "../utils/iden3/strings.circom";
+include "../utils/passport/parser/extractors.circom";
+include "../utils/passport/date/dateDiffGreaterThanYear.circom";
+
+include "self/circuits/circuits/utils/crypto/bitify/bytes.circom";
+include "self/circuits/circuits/utils/crypto/hasher/hash.circom";
+include "@openpassport/zk-email-circuits/utils/array.circom";
+include "circomlib/circuits/poseidon.circom";
+
+template Integrity(hashAlgo) {
+    signal input dg1[DG1_TD1_SIZE()];
+    signal output poseidonDg1Hash;
+    
+    var hashAlgBytesSize = hashAlgo / 8;
+    signal dg1Bits[DG1_TD1_SIZE_BITS()] <== BytesToBitsArray(DG1_TD1_SIZE())(dg1);
+    signal dg1ShaBits[hashAlgo] <== ShaHashBits(DG1_TD1_SIZE_BITS(), hashAlgo)(dg1Bits);
+    
+    signal dg1ShaBytes[hashAlgBytesSize];
+    dg1ShaBytes <== BitsToBytesArray(hashAlgo)(dg1ShaBits);
+    poseidonDg1Hash <== PaddingAndPoseidon(hashAlgBytesSize)(dg1ShaBytes);
+}
+
+template ValidateHolderNameSizeInput() {
+    signal input dg1[DG1_TD1_SIZE()];
+    signal input holderNameSize;
+    
+    component rawNameOfHolder = SelectSubArray(DG1_TD1_SIZE(), nameOfHolderSize());
+    rawNameOfHolder.in <== dg1;
+    rawNameOfHolder.startIndex <== nameOfHolderPosition();
+    rawNameOfHolder.length <== nameOfHolderSize();
+
+    component originalDelimiterSize = CountTrailing(nameOfHolderSize());
+    originalDelimiterSize.string <== rawNameOfHolder.out;
+    originalDelimiterSize.symbol <== dg1DelimiterSymbol();
+    originalDelimiterSize.count + holderNameSize === nameOfHolderSize();
+}
+
+/*
+    The template DG1FieldParser cuts fields as from DG1 (TD1 format):
+    1. Document code: Line 1, Position 1, Size 2
+    2. Issuing State or organization: Line 1, Position 3, Size 3
+    3. Document number: Line 1, Position 6, Size 9
+    4. DOB: Line 2, Position 1, Size 6
+    5. Sex: Line 2, Position 8, Size 1
+    6. Date of expiry: Line 2, Position 9, Size 6
+    7. Nationality: Line 2, Position 16, Size 3
+    8. Name of holder: Line 3, Size 30
+*/
+template DG1FieldParser(hashAlgo, nLevels, smtChanges) {
+    signal input dg1[DG1_TD1_SIZE()];
+    signal input holderNameSize;
+
+    signal input credentialStatusID;
+    signal input credentialSubjectID;
+    signal input userID;
+
+    signal input linkNonce;
+    signal input siblings[smtChanges][nLevels];
+
+    signal output hashIndex;
+    signal output hashValue;
+    signal output linkId;
+
+    // public inputs
+    signal input currentDate; // Format: YYMMDD
+    signal input issuanceDate;
+    signal input templateRoot;
+    signal input issuer;
+    signal input revocationNonce;
+
+    // check if currentDate exists between 0 and 1,048,575;
+    // to prevent pass any value between p/2 and p-1 (negative)
+    component currentDateFitsTo20Bits = CheckMaxBits(20);
+    currentDateFitsTo20Bits.inputInteger <== currentDate;
+
+    component documentCodeExtractor = Extractor(DG1_TD1_SIZE(), documentCodePosition(), documentCodeSize());
+    documentCodeExtractor.dg1 <== dg1;
+    signal documentCodeHash <== documentCodeExtractor.hash;
+
+    component documentIssuerExtractor = Extractor(DG1_TD1_SIZE(), issuingStatePosition(), issuingStateSize());
+    documentIssuerExtractor.dg1 <== dg1;
+    signal documentIssuerHash <== documentIssuerExtractor.hash;
+
+    ValidateHolderNameSizeInput()(dg1, holderNameSize);
+
+    component holderNameExtractor = ExtractorHolder(DG1_TD1_SIZE(), nameOfHolderSize());
+    holderNameExtractor.dg1 <== dg1;
+    holderNameExtractor.start <== nameOfHolderPosition();
+    holderNameExtractor.end <== holderNameSize;
+    signal holderNameHash <== holderNameExtractor.hash;
+
+    component documentNumberExtractor = Extractor(DG1_TD1_SIZE(), documentNumberPosition(), documentNumberSize());
+    documentNumberExtractor.dg1 <== dg1;
+    signal documentNumberHash <== documentNumberExtractor.hash;
+
+    component documentNationalityExtractor = Extractor(DG1_TD1_SIZE(), nationalityPosition(), nationalitySize());
+    documentNationalityExtractor.dg1 <== dg1;
+    signal documentNationalityHash <== documentNationalityExtractor.hash;
+
+    component documentDOBExtractor = ExtractorDOB(DG1_TD1_SIZE(), dobPosition(), dobSize());
+    documentDOBExtractor.dg1 <== dg1;
+    documentDOBExtractor.currentDate <== currentDate;
+    signal documentDOB <== documentDOBExtractor.out;
+
+    component documentSexExtractor = Extractor(DG1_TD1_SIZE(), sexPosition(), sexSize());
+    documentSexExtractor.dg1 <== dg1;
+    signal documentSexHash <== documentSexExtractor.hash;
+
+    component documentDOEExtractor = ExtractorDOE(DG1_TD1_SIZE(), dateOfExpiryPosition(), dateOfExpirySize());
+    documentDOEExtractor.dg1 <== dg1;
+    documentDOEExtractor.currentDate <== currentDate;
+    signal documentDOE <== documentDOEExtractor.out;
+    signal documentDOETimestamp <== documentDOEExtractor.timestamp;
+
+    var keysToUpdate[smtChanges] = [
+        GetDateOfBirth(), // credentialSubject.dateOfBirth
+        GetDocumentExpirationDate(), // credentialSubject.documentExpirationDate
+        GetFullName(), // credentialSubject.fullName
+        GetGovernmentIdentifier(), // credentialSubject.governmentIdentifier
+        GetGovernmentIdentifierType(), // credentialSubject.governmentIdentifierType
+        GetSex(), // credentialSubject.sex
+        GetRevocationNonce(), // credentialStatus.revocationNonce
+        GetCredentialStatusID(), // credentialStatus.id
+        GetCredentialSubjectID(), // credentialSubject.id
+        GetExpirationDate(), // expirationDate.id
+        GetIssuanceDate(), // issuanceDate.id
+        GetIssuer(), // issuer.id
+        GetDocumentNationality(), // credentialSubject.nationalities
+        GetDocumentIssuer() // credentialSubject.nationalities
+    ];
+
+    // check if issuanceDate exists between 0 and int64;
+    // to prevent pass any value between p/2 and p-1 (negative)
+    component issuanceDateFitsTo64Bits = CheckMaxBits(64);
+    issuanceDateFitsTo64Bits.inputInteger <== issuanceDate;
+
+    // issuanceDate and documentDOETimestamp are in UnixTimestamp format
+    signal credentialExpiration <== DateDiffGreaterThanYear()(issuanceDate, documentDOETimestamp);
+
+    
+    // For debuging mt update
+    /*
+    log(documentDOB);
+    log(documentDOE); // expiration date in format YYYYMMDD == passport mrz
+    log(holderNameHash);
+    log(documentNumberHash);
+    log(documentCodeHash);
+    log(documentSexHash);
+    log(revocationNonce);
+    log(credentialStatusID);
+    log(credentialSubjectID);
+    log(credentialExpiration * 1000000000);
+    log(issuanceDate * 1000000000);
+    log(issuer);
+    log(documentNationalityHash);*/
+    
+
+    var valuesToUpdate[smtChanges] = [
+        documentDOB, // credentialSubject.dateOfBirth
+        documentDOE, // credentialSubject.documentExpirationDate
+        holderNameHash, // credentialSubject.fullName
+        documentNumberHash, // credentialSubject.govermentIdentifier
+        documentCodeHash, // credentialSubject.governmentIdentifierType
+        documentSexHash, // credentialSubject.sex
+        revocationNonce, // credentialStatus.revocationNonce
+        credentialStatusID, // credentialStatus.id
+        credentialSubjectID, // credentialSubject.id
+        credentialExpiration * 1000000000, // expirationDate.id
+        issuanceDate * 1000000000, // issuanceDate.id
+        issuer, // issuer.id
+        documentNationalityHash, // credentialSubject.nationalities
+        documentIssuerHash // credentialSubject.nationalities
+    ];
+
+    component c = ClaimRootBuilder(nLevels, smtChanges);
+    c.templateRoot <== templateRoot;
+    c.siblings <== siblings;
+    c.keys <== keysToUpdate;
+    c.values <== valuesToUpdate;
+
+    // For debuging mt root
+    // log(c.newRoot);
+
+    // The value was calculated using the go-iden3-core library
+    var i0 = v0();
+    component hI = Poseidon(4);
+    hI.inputs[0] <== i0;
+    hI.inputs[1] <== userID;
+    hI.inputs[2] <== c.newRoot;
+    hI.inputs[3] <== 0;
+
+    component V0Calc = V0Calculator();
+    V0Calc.revocation <== revocationNonce;
+    V0Calc.expiration <== credentialExpiration;
+
+    component hV = Poseidon(4);
+    hV.inputs[0] <== V0Calc.out;
+    hV.inputs[1] <== 0;
+    hV.inputs[2] <== 0;
+    hV.inputs[3] <== 0;
+
+    hashIndex <== hI.out;
+    hashValue <== hV.out;
+
+    signal poseidonDg1Hash <== Integrity(hashAlgo)(dg1);
+    linkId <== LinkID()(poseidonDg1Hash, linkNonce);
+}
