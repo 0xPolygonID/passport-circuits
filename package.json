@@ -10,12 +10,16 @@
     "test-utils": "npx ts-mocha --max-old-space-size=40960 'tests/utils/*.test.ts' --exit",
     "build-all": "bash scripts/build/build_credential_circuit.sh",
     "build-credential": "bash scripts/build/build_credential_circuit.sh",
+    "build-idcard": "bash scripts/build/build_idcard_circuit.sh",
     "build-anonaadhaar": "bash scripts/build/build_anonaadhaar_circuits.sh",
-    "integration-credential": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/credential/credential.integration.ts' --exit",
+    "integration-credential": "ulimit -s 65520 && FULL_TEST_SUITE=true npx ts-mocha --max-old-space-size=51200 'scripts/integration/credential/credential.integration.ts' --exit",
+    "integration-idcard": "ulimit -s 65520 && FULL_TEST_SUITE=true npx ts-mocha --max-old-space-size=51200 'scripts/integration/idcard/idcard.integration.ts' --exit",
     "integration-anonaadhaar": "ulimit -s 65520 && npx ts-mocha --max-old-space-size=51200 'scripts/integration/anonAadhaarV1/anonAadhaarV1.integration.ts' --exit",
     "s3-bucket-credential": "bash scripts/s3-bucket/files_credential_circuits.sh",
+    "s3-bucket-idcard": "bash scripts/s3-bucket/files_idcard_circuits.sh",
     "s3-bucket-anonaadhaar": "bash scripts/s3-bucket/files_anonaadhaar_circuits.sh",
-    "generate-credential-circuits": "bash scripts/build/credential_circuit_setup_instances.bash"
+    "generate-credential-circuits": "CIRCUIT_TYPE=credential bash scripts/build/circuit_setup_instances.bash",
+    "generate-idcard-circuits": "CIRCUIT_TYPE=idcard bash scripts/build/circuit_setup_instances.bash"
   },
   "keywords": [],
   "author": "",

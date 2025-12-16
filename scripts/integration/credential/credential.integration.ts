@@ -58,10 +58,10 @@ testSuite.forEach(({ shaAlg }) => {
       inputs = await generateCircuitInputsCredential(passportData);
       circuitName = `credential_${shaAlg}`;
       witness_calculator = `./circom-witnesscalc/target/release/calc-witness`;
-      circuit_graph_path = `./build/credential/${circuitName}/${circuitName}.wcd`;
+      circuit_graph_path = `./build/credential/${circuitName}/${circuitName}_graph.wcd`;
       input_path = `./build/credential/${circuitName}/input.json`;
       witnes_path = `./build/credential/${circuitName}/output.wtns`;
-      zkey_path = `./build/credential/${circuitName}/${circuitName}.zkey`;
+      zkey_path = `./build/credential/${circuitName}/${circuitName}_fianl.zkey`;
       v_key = `./build/credential/${circuitName}/${circuitName}_vkey.json`;
     });
 
