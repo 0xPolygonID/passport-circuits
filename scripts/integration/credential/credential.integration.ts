@@ -61,7 +61,7 @@ testSuite.forEach(({ shaAlg }) => {
       circuit_graph_path = `./build/credential/${circuitName}/${circuitName}_graph.wcd`;
       input_path = `./build/credential/${circuitName}/input.json`;
       witnes_path = `./build/credential/${circuitName}/output.wtns`;
-      zkey_path = `./build/credential/${circuitName}/${circuitName}_fianl.zkey`;
+      zkey_path = `./build/credential/${circuitName}/${circuitName}_final.zkey`;
       v_key = `./build/credential/${circuitName}/${circuitName}_vkey.json`;
     });
 
