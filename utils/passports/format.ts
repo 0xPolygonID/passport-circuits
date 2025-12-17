@@ -107,7 +107,8 @@ export function generateSignedAttr(messageDigest: number[]) {
     constructedEContent.push(...messageDigest);
     return constructedEContent;
 }
-export function formatMrz(mrz: string) {
+
+export function formatMrzTD3(mrz: string) {
     const mrzCharcodes = [...mrz].map((char) => char.charCodeAt(0));
 
     mrzCharcodes.unshift(88); // the length of the mrz data
@@ -117,6 +118,18 @@ export function formatMrz(mrz: string) {
 
     return mrzCharcodes;
 }
+
+export function formatMrzTD1(mrz: string) {
+    const mrzCharcodes = [...mrz].map((char) => char.charCodeAt(0));
+    
+    mrzCharcodes.unshift(90); // the length of the TD1 mrz data (90 chars)
+    mrzCharcodes.unshift(95, 31); // the MRZ_INFO_TAG
+    mrzCharcodes.unshift(93); // the new length of the whole array
+    mrzCharcodes.unshift(97); // the tag for DG1
+
+    return mrzCharcodes;
+}
+
 export function formatDg2Hash(dg2Hash: number[]) {
     const unsignedBytesDg2Hash = dg2Hash.map((x) => toUnsignedByte(x));
     while (unsignedBytesDg2Hash.length < 64) {

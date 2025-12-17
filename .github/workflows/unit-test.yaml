@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Update git submodules
         run: git submodule update --init
@@ -31,15 +31,15 @@ jobs:
       #     cargo build --release
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.16.0
+          node-version: 20.19.0
 
       - name: Enable Corepack
         run: |
           npm i -g corepack@latest
           corepack enable
-          corepack prepare yarn@4.6.0 --activate
+          corepack prepare pnpm@9.12.0 --activate
 
       - name: Install circom 2.1.9
         run: |

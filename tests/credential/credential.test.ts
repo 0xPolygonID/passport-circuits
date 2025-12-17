@@ -28,7 +28,7 @@ testSuite.forEach(({ shaAlg, shaLength }) => {
       circuit = await wasm_tester(
         path.join(__dirname, `../../circuits/credential/instances/credential_${shaAlg}.circom`),
         {
-          include: ['node_modules'],
+          include: ['node_modules', 'self'],
         }
       );
     });
@@ -92,7 +92,7 @@ describe('credential_sha256.circom', function () {
     circuit = await wasm_tester(
       path.join(__dirname, '../../circuits/credential/instances/credential_sha256.circom'),
       {
-        include: ['node_modules'],
+        include: ['node_modules', 'self'],
       }
     );
   });
@@ -130,7 +130,7 @@ describe('credential_sha256.circom', function () {
       }
     }
   });
-  it(`CurrentDate is bigger then 1,048,575`, async function () {
+  it(`CurrentDate is bigger than 1,048,575`, async function () {
     const passportData = genMockPassportData(
       'sha256',
       'sha256',
@@ -159,7 +159,7 @@ describe('credential_sha256.circom', function () {
       }
     }
   });
-  it(`IssuanceDate is bigger then int64`, async function () {
+  it(`IssuanceDate is bigger than int64`, async function () {
     const passportData = genMockPassportData(
       'sha256',
       'sha256',

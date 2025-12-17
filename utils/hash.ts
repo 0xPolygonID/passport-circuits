@@ -36,7 +36,7 @@ export function hash(
       break;
     default:
       console.log('\x1b[31m%s\x1b[0m', `${hashFunction} not found in hash`); // Log in red
-      hashResult = sha256(unsignedBytesArray); // Default to sha256
+      throw new Error(`Hash function ${hashFunction} not supported`);
   }
   if (format === 'hex') {
     return hashResult;
@@ -63,8 +63,7 @@ export function getHashLen(hashFunction: string) {
     case 'sha512':
       return 64;
     default:
-      console.log(`${hashFunction} not found in getHashLen`);
-      return 32;
+      throw new Error(`Hash function ${hashFunction} not supported`);
   }
 }
 
