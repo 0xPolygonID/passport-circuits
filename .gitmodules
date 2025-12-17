@@ -7,3 +7,6 @@
 [submodule "zk-email-verify"]
 	path = zk-email-verify
 	url = https://github.com/olomix/zk-email-verify
+[submodule "self"]
+	path = self
+	url = https://github.com/selfxyz/self

@@ -11,8 +11,8 @@ include "../utils/iden3/strings.circom";
 include "../utils/passport/parser/extractors.circom";
 include "../utils/passport/date/dateDiffGreaterThanYear.circom";
 
-include "self/circuits/circuits/utils/crypto/bitify/bytes.circom";
-include "self/circuits/circuits/utils/crypto/hasher/hash.circom";
+include "circuits/circuits/utils/crypto/bitify/bytes.circom"; // from self
+include "circuits/circuits/utils/crypto/hasher/hash.circom"; // from self
 include "@openpassport/zk-email-circuits/utils/array.circom";
 include "circomlib/circuits/poseidon.circom";
 

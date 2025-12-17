@@ -9,7 +9,7 @@ OUTPUT_DIR="${CURR_DIR}/build/${CIRCUIT_TYPE}"
 PACKAGE_DIR="${CURR_DIR}/package/${CIRCUIT_TYPE}"
 
 libs() {
-    echo "node_modules node_modules/@openpassport node_modules/circomlib/circuits"
+    echo "node_modules node_modules/@openpassport node_modules/circomlib/circuits self"
 }
 
 # Define circuits and their configurations
